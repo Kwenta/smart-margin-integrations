@@ -1,11 +1,11 @@
 {
 	"name": "@kwenta/smart-margin-integrations",
 	"version": "0.0.1",
-	"type": "module",
 	"description": "Example scripts of how to build delegation services for Kwenta Smart Margin",
 	"main": "index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"copytrading": "ts-node src/copytrading.ts"
 	},
 	"keywords": [],
 	"repository": "git@github.com:Kwenta/smart-margin-integrations.git",
@@ -17,6 +17,7 @@
 	"devDependencies": {
 		"@antfu/eslint-config": "^0.39.5",
 		"@types/node": "^20.3.1",
+		"dotenv": "^16.3.1",
 		"eslint": "^8.43.0",
 		"eslint-config-prettier": "^8.8.0",
 		"eslint-plugin-prettier": "^4.2.1",
