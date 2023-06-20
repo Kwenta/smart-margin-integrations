@@ -1,0 +1,6 @@
+node_modules
+.env
+dist
+tmp
+.ds_store
+settings.json
