@@ -1,0 +1,14 @@
+{
+  "name": "@kwenta/smart-margin-integrations",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Example scripts of how to build delegation services for Kwenta Smart Margin",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "repository": "git@github.com:Kwenta/smart-margin-integrations.git",
+  "author": "Kwenta",
+  "license": "MIT"
+}
