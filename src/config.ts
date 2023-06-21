@@ -1,23 +1,20 @@
-import { createPublicClient, createWalletClient, http } from 'viem';
 import dotenv from 'dotenv';
+import { createPublicClient, createWalletClient, http, isAddress } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { optimism, optimismGoerli } from 'viem/chains';
 
 dotenv.config();
 
 const supportedChains = ['10', '420'];
 
-const initClients = () => {
+function initClients() {
 	const chainId = process.env.CHAIN_ID;
-	const wsUrl = process.env.WS_URL;
+	const privateKey = process.env.EXECUTOR_PRIVATE_KEY;
 	const rpcUrl = process.env.JSON_RPC_URL;
 
 	if (!chainId) {
 		throw new Error('Missing env var CHAIN_ID');
 	}
-
-	// if (!wsUrl) {
-	// 	throw new Error('Missing env var WS_URL');
-	// }
 
 	if (!rpcUrl) {
 		throw new Error('Missing env var RPC_URL');
@@ -27,20 +24,25 @@ const initClients = () => {
 		throw new Error(`Unsupported chain id: ${chainId}`);
 	}
 
+	if (!privateKey) {
+		throw new Error('Missing env var EXECUTOR_PRIVATE_KEY');
+	}
+
+	if (!isAddress(privateKey)) {
+		throw new Error('Invalid private key');
+	}
+
 	return {
-		// wsClient: createPublicClient({
-		// 	transport: webSocket(wsUrl),
-		// 	chain: chainId === '10' ? optimism : optimismGoerli,
-		// }),
 		publicClient: createPublicClient({
 			transport: http(rpcUrl),
 			chain: chainId === '10' ? optimism : optimismGoerli,
 		}),
 		walletClient: createWalletClient({
-			transport: http(wsUrl),
+			transport: http(rpcUrl),
 			chain: chainId === '10' ? optimism : optimismGoerli,
+			account: privateKeyToAccount(privateKey),
 		}),
 	};
-};
+}
 
 export { initClients };
