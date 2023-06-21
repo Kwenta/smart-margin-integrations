@@ -56,3 +56,13 @@ export const TRADING_REWARDS: Record<string, Address> = {
 	420: '0x74c0A3bD10634759DC8B4CA7078C8Bf85bFE1271',
 	10: '0xf486A72E8c8143ACd9F65A104A16990fDb38be14',
 };
+
+export const SMART_MARGIN_FACTORY: Record<string, Address> = {
+	420: '0x30582eee34719fe22b1b6c3b607636a3ab94522e',
+	10: '0x8234f990b149ae59416dc260305e565e5dafeb54',
+};
+
+export const PROXY_PERPS_V2: Record<string, Address> = {
+	420: '0x111BAbcdd66b1B60A20152a2D3D06d36F8B5703c',
+	10: '0x59b007e9ea8f89b069c43f8f45834d30853e3699',
+};
