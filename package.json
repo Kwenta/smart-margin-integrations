@@ -15,7 +15,8 @@
 		"copytrading": "ts-node src/copytrading.ts",
 		"lint": "eslint --ext .ts .",
 		"lint:fix": "eslint --ext .ts . --fix",
-		"postinstall": "husky install"
+		"postinstall": "husky install",
+		"tsc": "tsc"
 	},
 	"dependencies": {
 		"viem": "^1.0.7"
