@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { createPublicClient, createWalletClient, http, isAddress } from 'viem';
+import { createPublicClient, createWalletClient, http, isHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { optimism, optimismGoerli } from 'viem/chains';
 
@@ -28,7 +28,7 @@ function initClients() {
 		throw new Error('Missing env var EXECUTOR_PRIVATE_KEY');
 	}
 
-	if (!isAddress(privateKey)) {
+	if (!isHex(privateKey)) {
 		throw new Error('Invalid private key');
 	}
 
