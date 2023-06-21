@@ -29,6 +29,7 @@
 				"caughtErrorsIgnorePattern": "^_"
 			}
 		],
+		"@typescript-eslint/brace-style": "off",
 		"import/order": [
 			"warn",
 			{
