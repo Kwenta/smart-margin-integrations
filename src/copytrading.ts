@@ -1,17 +1,15 @@
 /* eslint-disable no-console */
-import type { Address, Hex } from 'viem';
 import { decodeFunctionData, isAddress } from 'viem';
 
-import { SMART_MARGIN_ACCOUNT_ABI, SMART_MARGIN_FACTORY_ABI } from './abi';
+import { SMART_MARGIN_ACCOUNT_ABI } from './abi';
 import { initClients } from './config';
-import { SMART_MARGIN_FACTORY } from './constants/address';
-import { parseExecuteData } from './utils';
+import { checkDelegate, getSmartAccounts, parseExecuteData } from './utils';
 
-const { publicClient } = initClients();
+const { publicClient, walletClient } = initClients();
 
 async function main() {
 	const targetWallet = process.env.TARGET_WALLET;
-	const chainId = process.env.CHAIN_ID!;
+	const repeaterWallet = process.env.REPEATER_SMART_ADDRESS;
 
 	if (!targetWallet) {
 		throw new Error('TARGET_WALLET is not set');
@@ -21,14 +19,22 @@ async function main() {
 		throw new Error('TARGET_WALLET is not a valid address');
 	}
 
-	// TODO: Add check for delegate (walletClient must be as delegate)
+	if (!repeaterWallet) {
+		throw new Error('REPEATER_SMART_ADDRESS is not set');
+	}
 
-	const targetAccounts = await publicClient.readContract({
-		abi: SMART_MARGIN_FACTORY_ABI,
-		address: SMART_MARGIN_FACTORY[chainId],
-		functionName: 'getAccountsOwnedBy',
-		args: [targetWallet],
-	});
+	if (!isAddress(repeaterWallet)) {
+		throw new Error('REPEATER_SMART_ADDRESS is not a valid address');
+	}
+
+	const hasDelegate = await checkDelegate({ repeaterWallet });
+
+	if (!hasDelegate) {
+		console.error('Executor wallet must be a delegate for the repeater wallet');
+		return;
+	}
+
+	const targetAccounts = await getSmartAccounts(targetWallet);
 
 	if (targetAccounts.length === 0) {
 		console.error('Target KWENTA accounts not found');
@@ -45,19 +51,10 @@ async function main() {
 
 			for (const transaction of block.transactions) {
 				try {
-					let to: Address | null;
-					let input: Hex;
-					if (typeof transaction === 'string') {
-						const { to: to_, input: input_ } = await publicClient.getTransaction({
-							hash: transaction,
-						});
-						to = to_;
-						input = input_;
-					} else {
-						const { to: to_, input: input_ } = transaction;
-						to = to_;
-						input = input_;
-					}
+					const { to, input, gas } =
+						typeof transaction === 'string'
+							? await publicClient.getTransaction({ hash: transaction })
+							: transaction;
 
 					if (formattedTargetAccounts.includes(to!.toLowerCase())) {
 						console.log('Transaction to target account found');
@@ -69,6 +66,20 @@ async function main() {
 
 						if (functionName === 'execute') {
 							parseExecuteData(args);
+
+							try {
+								// TODO: Add sUSD approve check here
+								console.log('Sending transaction to repeater wallet');
+								const hash = await walletClient.sendTransaction({
+									to: repeaterWallet,
+									data: input,
+									gas: (gas * 110n) / 100n,
+								});
+								console.log('Transaction sent', hash);
+								await publicClient.waitForTransactionReceipt({ hash });
+							} catch (e) {
+								console.error(e);
+							}
 						}
 					}
 				} catch (e) {
