@@ -18,6 +18,8 @@
 		"jsonc/indent": "off",
 		"@typescript-eslint/semi": "off",
 		"@typescript-eslint/indent": "off",
+		"@typescript-eslint/member-delimiter-style": "off",
+		"operator-linebreak": "off",
 		"curly": "off",
 		"arrow-parens": "off",
 		"import/no-anonymous-default-export": "off",
