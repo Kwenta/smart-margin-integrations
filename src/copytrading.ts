@@ -46,23 +46,16 @@ async function main() {
 			for (const transaction of block.transactions) {
 				try {
 					let to: Address | null;
-					let from: Address | null;
 					let input: Hex;
 					if (typeof transaction === 'string') {
-						const {
-							to: to_,
-							from: from_,
-							input: input_,
-						} = await publicClient.getTransaction({
+						const { to: to_, input: input_ } = await publicClient.getTransaction({
 							hash: transaction,
 						});
 						to = to_;
-						from = from_;
 						input = input_;
 					} else {
-						const { to: to_, from: from_, input: input_ } = transaction;
+						const { to: to_, input: input_ } = transaction;
 						to = to_;
-						from = from_;
 						input = input_;
 					}
 
