@@ -19,6 +19,7 @@
 		"@typescript-eslint/semi": "off",
 		"@typescript-eslint/indent": "off",
 		"@typescript-eslint/member-delimiter-style": "off",
+		"@typescript-eslint/comma-dangle": "off",
 		"operator-linebreak": "off",
 		"curly": "off",
 		"arrow-parens": "off",
