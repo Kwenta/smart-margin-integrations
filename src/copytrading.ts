@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-import { decodeFunctionData, isAddress } from 'viem';
+import { decodeFunctionData, formatUnits, isAddress } from 'viem';
 
 import { SMART_MARGIN_ACCOUNT_ABI } from './abi';
 import { initClients } from './config';
-import { checkDelegate, getSmartAccounts, parseExecuteData } from './utils';
+import { checkDelegate, getIdleMargin, getSmartAccounts, parseExecuteData } from './utils';
 
 const { publicClient, walletClient } = initClients();
 
@@ -42,6 +42,18 @@ async function main() {
 	}
 
 	const formattedTargetAccounts = targetAccounts.map((account) => account.toLowerCase());
+
+	const repeaterBalance = await publicClient.readContract({
+		abi: SMART_MARGIN_ACCOUNT_ABI,
+		address: repeaterWallet,
+		functionName: 'freeMargin',
+	});
+
+	const { idleInMarkets, positions } = await getIdleMargin(repeaterWallet);
+
+	const totalBalance = idleInMarkets + repeaterBalance;
+	const totalBalanceInUSD = formatUnits(totalBalance, 18);
+	console.log(`Available balance: ${totalBalanceInUSD} sUSD`);
 
 	publicClient.watchBlocks({
 		onBlock: async (block) => {
