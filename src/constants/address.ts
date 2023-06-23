@@ -66,3 +66,8 @@ export const PROXY_PERPS_V2: Record<string, Address> = {
 	420: '0x111BAbcdd66b1B60A20152a2D3D06d36F8B5703c',
 	10: '0x59b007e9ea8f89b069c43f8f45834d30853e3699',
 };
+
+export const PERPS_V2_MARKET_DATA: Record<string, Address> = {
+	420: '0xcE2dC389fc8Be231beECED1D900881e38596d7b2',
+	10: '0x340B5d664834113735730Ad4aFb3760219Ad9112',
+};
