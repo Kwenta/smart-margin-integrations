@@ -1,9 +1,9 @@
 import { type Address, toHex } from 'viem';
 
-import { PERPS_V2_MARKET_DATA_ABI } from '../abi';
-import { initClients } from '../config';
-import { PERPS_V2_MARKET_DATA } from '../constants/address';
-import { MAINNET_MARKETS, TESTNET_MARKETS } from '../constants/markets';
+import { PERPS_V2_MARKET_DATA_ABI } from '../../abi';
+import { initClients } from '../../config';
+import { PERPS_V2_MARKET_DATA } from '../../constants/address';
+import { MAINNET_MARKETS, TESTNET_MARKETS } from '../../constants/markets';
 
 interface PositionDetail {
 	remainingMargin: bigint;

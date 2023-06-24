@@ -1,4 +1,4 @@
-import type { IdlePosition } from './get-idle-margin';
+import type { IdlePosition } from '../prepare/get-idle-margin';
 
 function selectPositionsForWidthdraw(positions: IdlePosition[], amount: bigint): IdlePosition[] {
 	const sortedPositions = positions.sort((a, b) => (b.idleMargin > a.idleMargin ? 1 : -1));

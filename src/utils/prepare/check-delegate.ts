@@ -1,7 +1,7 @@
 import { type Address, isAddressEqual } from 'viem';
 
-import { SMART_MARGIN_ACCOUNT_ABI } from '../abi';
-import { initClients } from '../config';
+import { SMART_MARGIN_ACCOUNT_ABI } from '../../abi';
+import { initClients } from '../../config';
 
 interface CheckDelegateOptions {
 	repeaterWallet: Address;

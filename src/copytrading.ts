@@ -3,7 +3,8 @@ import { decodeFunctionData, formatUnits, isAddress } from 'viem';
 
 import { SMART_MARGIN_ACCOUNT_ABI } from './abi';
 import { initClients } from './config';
-import { checkDelegate, getIdleMargin, getSmartAccounts, parseExecuteData } from './utils';
+import { checkDelegate, getIdleMargin, getSmartAccounts } from './utils/prepare';
+import { parseExecuteData } from './utils/trade';
 
 const { publicClient, walletClient } = initClients();
 
