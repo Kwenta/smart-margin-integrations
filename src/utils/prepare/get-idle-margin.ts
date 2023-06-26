@@ -1,9 +1,8 @@
-import { type Address, toHex } from 'viem';
+import { type Address } from 'viem';
 
 import { PERPS_V2_MARKET_DATA_ABI } from '../../abi';
 import { initClients } from '../../config';
 import { PERPS_V2_MARKET_DATA } from '../../constants/address';
-import { MAINNET_MARKETS, TESTNET_MARKETS } from '../../constants/markets';
 
 interface PositionDetail {
 	remainingMargin: bigint;
@@ -31,17 +30,10 @@ interface IdlePosition {
 	idleMargin: bigint;
 }
 
+// TODO: Use SDK to get margin from markets
 async function getIdleMargin(repeaterWallet: Address) {
 	const { publicClient } = initClients();
 	const chainId = publicClient.chain.id;
-
-	const markets = chainId === 10 ? MAINNET_MARKETS : TESTNET_MARKETS;
-
-	// const marketAddresses = await publicClient.readContract({
-	//   abi: PERPS_V2_MARKET_DATA_ABI,
-	//   address:
-	// })
-	// TODO: Use SDK to get margin from markets
 
 	const config = {
 		abi: PERPS_V2_MARKET_DATA_ABI,
@@ -49,19 +41,19 @@ async function getIdleMargin(repeaterWallet: Address) {
 		address: PERPS_V2_MARKET_DATA[chainId],
 	};
 
-	const marketKeys = markets.map((market) => toHex(market.key, { size: 32 }));
+	const allMarketsResponse = await publicClient.readContract({
+		abi: PERPS_V2_MARKET_DATA_ABI,
+		address: PERPS_V2_MARKET_DATA[chainId],
+		functionName: 'allProxiedMarketSummaries',
+	});
+
+	const marketKeys = allMarketsResponse.map(({ key }) => key);
 
 	const positionsResponse = await publicClient.multicall({
 		contracts: marketKeys.map((key) => ({
 			...config,
 			args: [key, repeaterWallet],
 		})),
-	});
-
-	const allMarketsResponse = await publicClient.readContract({
-		abi: PERPS_V2_MARKET_DATA_ABI,
-		address: PERPS_V2_MARKET_DATA[chainId],
-		functionName: 'allProxiedMarketSummaries',
 	});
 
 	const allMarkets = allMarketsResponse.map(({ key, market }) => ({
