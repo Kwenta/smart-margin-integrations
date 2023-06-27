@@ -4,33 +4,22 @@ import { PERPS_V2_MARKET_DATA_ABI } from '../../abi';
 import { initClients } from '../../config';
 import { PERPS_V2_MARKET_DATA } from '../../constants/address';
 
-interface PositionDetail {
-	remainingMargin: bigint;
-	accessibleMargin: bigint;
-	orderPending: boolean;
-	order: {
-		pending: boolean;
-		fee: bigint;
-		leverage: bigint;
-	};
-	position: {
-		fundingIndex: bigint;
-		lastPrice: bigint;
-		size: bigint;
-		margin: bigint;
-	};
-	accruedFunding: bigint;
-	notionalValue: bigint;
-	liquidationPrice: bigint;
-	profitLoss: bigint;
-}
+interface PositionResponse
+	extends ReadContractReturnType<typeof PERPS_V2_MARKET_DATA_ABI, 'positionDetailsForMarketKey'> {}
 
 let allMarkets: ReadContractReturnType<
 	typeof PERPS_V2_MARKET_DATA_ABI,
 	'allProxiedMarketSummaries'
 >;
 
-async function getPositions(wallet: Address) {
+interface PositionDetail extends PositionResponse {
+	market: {
+		key: string;
+		market: Address;
+	};
+}
+
+async function getPositions(wallet: Address): Promise<PositionDetail[]> {
 	const { publicClient } = initClients();
 	const chainId = publicClient.chain.id;
 
@@ -64,9 +53,9 @@ async function getPositions(wallet: Address) {
 	const positions = positionsResponse
 		.filter((position) => position.status === 'success')
 		.map((position, idx) => ({
-			...(position.result as PositionDetail),
+			...(position.result as PositionResponse),
 			key: marketKeys[idx],
-			market: allMarkets.find((market) => market.key === marketKeys[idx])!,
+			market: allMarketsFormatted.find((market) => market.key === marketKeys[idx])!,
 		}));
 
 	return positions;
