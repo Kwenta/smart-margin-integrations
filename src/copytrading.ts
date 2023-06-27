@@ -1,10 +1,11 @@
 /* eslint-disable no-console */
 import { decodeFunctionData, formatUnits, isAddress } from 'viem';
 
+import { getWalletInfo } from 'utils/prepare/get-wallet-info';
+
 import { SMART_MARGIN_ACCOUNT_ABI } from './abi';
 import { initClients } from './config';
-import { checkDelegate, getIdleMargin, getSmartAccounts } from './utils/prepare';
-import { getPositions } from './utils/prepare/get-positions';
+import { checkDelegate, getSmartAccounts } from './utils/prepare';
 import { parseExecuteData, parseOperationDetails } from './utils/trade';
 
 const { publicClient, walletClient } = initClients();
@@ -36,50 +37,39 @@ async function main() {
 		return;
 	}
 
+	// TODO: Handle multiple accounts, not just the first one
 	const targetAccounts = await getSmartAccounts(targetWallet);
-	const formattedTargetAccounts = targetAccounts.map((account) => account.toLowerCase());
-
 	if (targetAccounts.length === 0) {
 		console.error('Target KWENTA accounts not found');
 		return;
 	}
 
-	const targetPositionsResponse = await Promise.all(
-		targetAccounts.map(async (account) => {
-			return getPositions(account);
-		})
-	);
-	const targetPositions = targetPositionsResponse
-		.flat()
-		.filter((position) => position.position.size !== 0n);
-	const repeaterPositions = await getPositions(repeaterWallet);
+	const targetAccount = targetAccounts.at(0)!;
 
-	const repeaterBalance = await publicClient.readContract({
-		abi: SMART_MARGIN_ACCOUNT_ABI,
-		address: repeaterWallet,
-		functionName: 'freeMargin',
+	const { positions: targetPositions, totalBalance: targetTotalBalance } = await getWalletInfo({
+		address: targetAccount,
+		// Target can use own sUSD balance, so we need to include it in the total balance
+		withOwnerBalance: true,
 	});
 
-	const { idleInMarkets } = await getIdleMargin(repeaterWallet);
+	const { positions: repeaterPositions, totalBalance: repeaterTotalBalance } = await getWalletInfo({
+		address: repeaterWallet,
+		// Delegate can't use owner sUSD balance, so we don't need to include it in the total balance
+		withOwnerBalance: false,
+	});
 
-	const totalBalance = idleInMarkets + repeaterBalance;
-	const totalBalanceInUSD = formatUnits(totalBalance, 18);
-	console.log(`Available balance: ${totalBalanceInUSD} sUSD`);
+	console.log(`Available balance: ${formatUnits(repeaterTotalBalance, 18)} sUSD`);
 
 	publicClient.watchBlocks({
 		onBlock: async (block) => {
-			if (block.transactions.length === 0) {
-				return;
-			}
-
 			for (const transaction of block.transactions) {
 				try {
-					const { to, input, gas } =
+					const { to, input } =
 						typeof transaction === 'string'
 							? await publicClient.getTransaction({ hash: transaction })
 							: transaction;
 
-					if (formattedTargetAccounts.includes(to!.toLowerCase())) {
+					if (to === targetAccount) {
 						console.log('Transaction to target account found');
 
 						const { args, functionName } = decodeFunctionData({
@@ -89,21 +79,12 @@ async function main() {
 
 						if (functionName === 'execute') {
 							const operations = parseExecuteData(args);
-							const operationDetails = parseOperationDetails(operations, targetPositions);
+							const operationDetails = parseOperationDetails(
+								operations,
+								targetPositions,
+								targetTotalBalance
+							);
 							console.log({ operationDetails });
-							// try {
-							// 	// TODO: Add sUSD approve check here
-							// 	console.log('Sending transaction to repeater wallet');
-							// 	const hash = await walletClient.sendTransaction({
-							// 		to: repeaterWallet,
-							// 		data: input,
-							// 		gas: (gas * 110n) / 100n,
-							// 	});
-							// 	console.log('Transaction sent', hash);
-							// 	await publicClient.waitForTransactionReceipt({ hash });
-							// } catch (e) {
-							// 	console.error(e);
-							// }
 						}
 					}
 				} catch (e) {
