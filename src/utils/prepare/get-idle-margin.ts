@@ -1,6 +1,4 @@
-import { type Address } from 'viem';
-
-import { getPositions } from './get-positions';
+import type { PositionDetail } from './get-positions';
 
 interface IdlePosition {
 	market: string;
@@ -8,9 +6,7 @@ interface IdlePosition {
 }
 
 // TODO: Use SDK to get margin from markets
-async function getIdleMargin(repeaterWallet: Address) {
-	const positions = await getPositions(repeaterWallet);
-
+async function getIdleMargin(positions: PositionDetail[]) {
 	const positionsWithIdleMargin = positions.filter(
 		(p) => p.position?.size === 0n && p.remainingMargin > 0n
 	);
