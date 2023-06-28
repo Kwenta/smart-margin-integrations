@@ -1,11 +1,9 @@
 /* eslint-disable no-console */
 import { decodeFunctionData, formatUnits, isAddress } from 'viem';
 
-import { getWalletInfo } from 'utils/prepare/get-wallet-info';
-
 import { SMART_MARGIN_ACCOUNT_ABI } from './abi';
 import { initClients } from './config';
-import { checkDelegate, getSmartAccounts } from './utils/prepare';
+import { checkDelegate, getSmartAccounts, getWalletInfo } from './utils/prepare';
 import { parseExecuteData, parseOperationDetails } from './utils/trade';
 
 const { publicClient, walletClient } = initClients();
@@ -69,7 +67,7 @@ async function main() {
 							? await publicClient.getTransaction({ hash: transaction })
 							: transaction;
 
-					if (to === targetAccount) {
+					if (to?.toLowerCase() === targetAccount.toLowerCase()) {
 						console.log('Transaction to target account found');
 
 						const { args, functionName } = decodeFunctionData({
@@ -93,7 +91,7 @@ async function main() {
 				}
 			}
 		},
-		pollingInterval: 1500,
+		pollingInterval: 999,
 	});
 }
 
