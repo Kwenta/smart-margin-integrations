@@ -1,8 +1,9 @@
 import type { Address } from 'viem';
-import { isAddress } from 'viem';
+import { formatEther, isAddress } from 'viem';
 
 import type { PositionDetail } from 'utils/prepare/get-positions';
 
+import type { CommandName } from '../../constants/commands';
 import { commandsToNames } from '../../constants/commands';
 
 import type { ExecuteOperation } from './parse-execute-data';
@@ -25,6 +26,7 @@ interface OperationDetails {
 	market?: Address;
 	amount: bigint;
 	marginAmount?: bigint;
+	proportion?: number;
 }
 
 const commandsValues = Object.values(commandsToNames);
@@ -36,37 +38,43 @@ function isShortPosition(position: PositionDetail): boolean {
 	return position.position.size < 0n;
 }
 
-function isMarketCommand(commandName: string): boolean {
+function isMarketCommand(commandName: CommandName): boolean {
 	return marketCommandNames.includes(commandName);
 }
 
-function isOpenPositionCommand(commandName: string): boolean {
+function isOpenPositionCommand(commandName: CommandName): boolean {
 	return openPositionCommands.includes(commandName);
 }
 
-function isClosePositionCommand(commandName: string): boolean {
+function isClosePositionCommand(commandName: CommandName): boolean {
 	return closePositionCommands.includes(commandName);
 }
 
-function isSetupConditionalOrderCommand(commandName: string): boolean {
+function isSetupConditionalOrderCommand(commandName: CommandName): boolean {
 	return commandName === commandsValues[12];
 }
 
 function parseOperationDetails(
 	operations: ExecuteOperation[],
-	positions: PositionDetail[]
+	positions: PositionDetail[],
+	balance: bigint
 ): OperationDetails {
-	const allArgs = operations.flatMap((operation) => operation.decodedArgs) as (bigint | Address)[];
+	const allArgs = operations
+		.filter((operation) => marketCommandNames.includes(operation.commandName))
+		.flatMap((operation) => operation.decodedArgs) as (bigint | Address)[];
 	const market = allArgs.find((arg) => typeof arg === 'string' && isAddress(arg)) as Address;
 
 	const modifyMargin = operations.find((operation) => operation.commandName === commandsValues[2]);
 	const firstMarketOperation = operations.find((operation) =>
 		isMarketCommand(operation.commandName)
 	);
-	const marketPosition = positions.find((position) => position.market.market === market);
+	const marketPosition = positions.find(
+		(position) => position.market.market === market && position.position.size !== 0n
+	);
 
 	// These 2 values declared here instead of using else in the conditions below to make TS work correctly
 	let amount = 0n;
+	let proportion = 1;
 	const marginAmount = modifyMargin?.decodedArgs[1] as bigint;
 	let type: OperationType = OperationType.CANCEL_CONDITIONAL_ORDER;
 
@@ -76,7 +84,12 @@ function parseOperationDetails(
 		amount = firstMarketOperation.decodedArgs[1] as bigint;
 
 		if (marketPosition) {
+			proportion =
+				Number.parseFloat(formatEther(amount)) /
+				Number.parseFloat(formatEther(marketPosition.position.size));
 			if (isClosePositionCommand(firstCommandName)) {
+				proportion = 1;
+				amount = marketPosition.position.size;
 				type = isShortPosition(marketPosition)
 					? OperationType.CLOSE_SHORT
 					: OperationType.CLOSE_LONG;
@@ -90,10 +103,15 @@ function parseOperationDetails(
 					: OperationType.INCREASE_SIZE;
 			}
 		} else if (isOpenPositionCommand(firstCommandName)) {
+			proportion =
+				Number.parseFloat(formatEther(marginAmount)) / Number.parseFloat(formatEther(balance));
 			type = amount < 0n ? OperationType.OPEN_SHORT : OperationType.OPEN_LONG;
 		}
 	} else if (modifyMargin) {
 		type = marginAmount < 0n ? OperationType.DECREASE_MARGIN : OperationType.INCREASE_MARGIN;
+		proportion =
+			Number.parseFloat(formatEther(marginAmount)) /
+			Number.parseFloat(formatEther(marketPosition!.position.margin));
 	} else if (isSetupConditionalOrderCommand(operations[0].commandName)) {
 		type = OperationType.PLACE_CONDITIONAL_ORDER;
 	}
@@ -102,6 +120,7 @@ function parseOperationDetails(
 		type,
 		market,
 		amount,
+		proportion: Math.abs(proportion),
 		marginAmount,
 	};
 }
