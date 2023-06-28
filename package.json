@@ -20,6 +20,7 @@
 	},
 	"dependencies": {
 		"@kwenta/sdk": "^1.0.0",
+		"ethers": "^5.7.2",
 		"viem": "^1.0.7"
 	},
 	"devDependencies": {
