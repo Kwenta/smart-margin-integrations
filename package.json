@@ -19,6 +19,7 @@
 		"tsc": "tsc"
 	},
 	"dependencies": {
+		"@kwenta/sdk": "^1.0.0",
 		"viem": "^1.0.7"
 	},
 	"devDependencies": {
