@@ -3,21 +3,21 @@ import { decodeFunctionData, formatUnits, isAddress } from 'viem';
 
 import { SMART_MARGIN_ACCOUNT_ABI } from './abi';
 import { initClients } from './config';
-import { checkDelegate, getSmartAccounts, getWalletInfo } from './utils/prepare';
+import { checkDelegate, getWalletInfo } from './utils/prepare';
 import { parseExecuteData, parseOperationDetails } from './utils/trade';
 
 const { publicClient, walletClient } = initClients();
 
 async function main() {
-	const targetWallet = process.env.TARGET_WALLET;
+	const targetWallet = process.env.TARGET_SMART_ADDRESS;
 	const repeaterWallet = process.env.REPEATER_SMART_ADDRESS;
 
 	if (!targetWallet) {
-		throw new Error('TARGET_WALLET is not set');
+		throw new Error('TARGET_SMART_ADDRESS is not set');
 	}
 
 	if (!isAddress(targetWallet)) {
-		throw new Error('TARGET_WALLET is not a valid address');
+		throw new Error('TARGET_SMART_ADDRESS is not a valid address');
 	}
 
 	if (!repeaterWallet) {
@@ -35,17 +35,8 @@ async function main() {
 		return;
 	}
 
-	// TODO: Handle multiple accounts, not just the first one
-	const targetAccounts = await getSmartAccounts(targetWallet);
-	if (targetAccounts.length === 0) {
-		console.error('Target KWENTA accounts not found');
-		return;
-	}
-
-	const targetAccount = targetAccounts.at(0)!;
-
 	const { positions: targetPositions, totalBalance: targetTotalBalance } = await getWalletInfo({
-		address: targetAccount,
+		address: targetWallet,
 		// Target can use own sUSD balance, so we need to include it in the total balance
 		withOwnerBalance: true,
 	});
@@ -67,7 +58,7 @@ async function main() {
 							? await publicClient.getTransaction({ hash: transaction })
 							: transaction;
 
-					if (to?.toLowerCase() === targetAccount.toLowerCase()) {
+					if (to?.toLowerCase() === targetWallet.toLowerCase()) {
 						console.log('Transaction to target account found');
 
 						const { args, functionName } = decodeFunctionData({
@@ -80,7 +71,7 @@ async function main() {
 							const operationDetails = await parseOperationDetails(
 								operations,
 								targetPositions,
-								targetAccount,
+								targetWallet,
 								targetTotalBalance
 							);
 							console.log({ operationDetails });
