@@ -77,9 +77,10 @@ async function main() {
 
 						if (functionName === 'execute') {
 							const operations = parseExecuteData(args);
-							const operationDetails = parseOperationDetails(
+							const operationDetails = await parseOperationDetails(
 								operations,
 								targetPositions,
+								targetAccount,
 								targetTotalBalance
 							);
 							console.log({ operationDetails });

@@ -3,6 +3,8 @@ import { formatEther, isAddress } from 'viem';
 
 import type { PositionDetail } from 'utils/prepare/get-positions';
 
+import { SMART_MARGIN_ACCOUNT_ABI } from '../../abi';
+import { initClients } from '../../config';
 import type { CommandName } from '../../constants/commands';
 import { commandsToNames } from '../../constants/commands';
 
@@ -33,6 +35,7 @@ const commandsValues = Object.values(commandsToNames);
 const marketCommandNames = commandsValues.slice(4);
 const closePositionCommands = commandsValues.slice(7, 10);
 const openPositionCommands = commandsValues.slice(4, 7);
+const conditionalOrderCommands = commandsValues.slice(11);
 
 function isShortPosition(position: PositionDetail): boolean {
 	return position.position.size < 0n;
@@ -54,15 +57,17 @@ function isSetupConditionalOrderCommand(commandName: CommandName): boolean {
 	return commandName === commandsValues[12];
 }
 
-function parseOperationDetails(
+async function parseOperationDetails(
 	operations: ExecuteOperation[],
 	positions: PositionDetail[],
+	address: Address,
 	balance: bigint
-): OperationDetails {
+): Promise<OperationDetails> {
 	const allArgs = operations
 		.filter((operation) => marketCommandNames.includes(operation.commandName))
 		.flatMap((operation) => operation.decodedArgs) as (bigint | Address)[];
-	const market = allArgs.find((arg) => typeof arg === 'string' && isAddress(arg)) as Address;
+
+	let market = allArgs.find((arg) => typeof arg === 'string' && isAddress(arg)) as Address;
 
 	const modifyMargin = operations.find((operation) => operation.commandName === commandsValues[2]);
 	const firstMarketOperation = operations.find((operation) =>
@@ -116,6 +121,21 @@ function parseOperationDetails(
 		type = OperationType.PLACE_CONDITIONAL_ORDER;
 	}
 
+	if (conditionalOrderCommands.includes(operations[0].commandName)) {
+		const { publicClient } = initClients();
+		const orderDetail = await publicClient.readContract({
+			abi: SMART_MARGIN_ACCOUNT_ABI,
+			address,
+			functionName: 'getConditionalOrder',
+			args: [operations[0].decodedArgs[0] as bigint],
+		});
+
+		const findedMarket = positions.find((position) => position.market.key === orderDetail.marketKey)
+			?.market.market;
+		if (findedMarket) {
+			market = findedMarket;
+		}
+	}
 	return {
 		type,
 		market,
