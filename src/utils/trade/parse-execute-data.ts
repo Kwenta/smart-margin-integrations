@@ -1,10 +1,11 @@
 import type { Hex } from 'viem';
 import { decodeAbiParameters, parseAbiParameters } from 'viem';
 
+import type { CommandName } from '../../constants/commands';
 import { commandsAbis, commandsToNames } from '../../constants/commands';
 
 interface ExecuteOperation {
-	commandName: string;
+	commandName: CommandName;
 	decodedArgs: readonly unknown[];
 }
 
