@@ -1,10 +1,11 @@
 import type { Address } from 'viem';
-import { formatEther, isAddress } from 'viem';
+import { isAddress } from 'viem';
 
 import { SMART_MARGIN_ACCOUNT_ABI } from '../../abi';
 import { initClients } from '../../config';
 import type { CommandName } from '../../constants/commands';
 import { commandsToNames } from '../../constants/commands';
+import { bigintToNumber } from '../helpers/';
 import type { PositionDetail } from '../prepare';
 
 import type { ExecuteOperation } from './parse-execute-data';
@@ -88,9 +89,7 @@ async function parseOperationDetails(
 		amount = firstMarketOperation.decodedArgs[1] as bigint;
 
 		if (marketPosition) {
-			proportion =
-				Number.parseFloat(formatEther(amount)) /
-				Number.parseFloat(formatEther(marketPosition.position.size));
+			proportion = bigintToNumber(amount) / bigintToNumber(marketPosition.position.size);
 			if (isClosePositionCommand(firstCommandName)) {
 				proportion = 1;
 				amount = marketPosition.position.size;
@@ -107,15 +106,12 @@ async function parseOperationDetails(
 					: OperationType.INCREASE_SIZE;
 			}
 		} else if (isOpenPositionCommand(firstCommandName)) {
-			proportion =
-				Number.parseFloat(formatEther(marginAmount)) / Number.parseFloat(formatEther(balance));
+			proportion = bigintToNumber(marginAmount) / bigintToNumber(balance);
 			type = amount < 0n ? OperationType.OPEN_SHORT : OperationType.OPEN_LONG;
 		}
 	} else if (modifyMargin) {
 		type = marginAmount < 0n ? OperationType.DECREASE_MARGIN : OperationType.INCREASE_MARGIN;
-		proportion =
-			Number.parseFloat(formatEther(marginAmount)) /
-			Number.parseFloat(formatEther(marketPosition!.position.margin));
+		proportion = bigintToNumber(marginAmount) / bigintToNumber(marketPosition!.position.margin);
 	} else if (isSetupConditionalOrderCommand(operations[0].commandName)) {
 		type = OperationType.PLACE_CONDITIONAL_ORDER;
 	}

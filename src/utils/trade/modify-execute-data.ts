@@ -1,6 +1,7 @@
-import { type Address, formatUnits, parseUnits } from 'viem';
+import { type Address, parseUnits } from 'viem';
 
 import { CommandName } from '../../constants/commands';
+import { bigintToNumber } from '../helpers/';
 import type { PositionDetail } from '../prepare';
 
 import { type OperationDetails, OperationType } from './parse-operation-details';
@@ -56,7 +57,7 @@ function modifyExecuteData({
 
 			const size = parseUnits(
 				(
-					Number.parseFloat(formatUnits(marketPosition.position.size, 18)) *
+					bigintToNumber(marketPosition.position.size) *
 					proportion! *
 					modifier
 				).toString() as `${number}`,
