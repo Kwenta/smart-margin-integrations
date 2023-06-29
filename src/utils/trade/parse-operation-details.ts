@@ -3,8 +3,7 @@ import { isAddress } from 'viem';
 
 import { SMART_MARGIN_ACCOUNT_ABI } from '../../abi';
 import { initClients } from '../../config';
-import type { CommandName } from '../../constants/commands';
-import { commandsToNames } from '../../constants/commands';
+import { CommandName, commandsToNames } from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
 import type { PositionDetail } from '../prepare';
 
@@ -65,12 +64,19 @@ async function parseOperationDetails(
 	balance: bigint
 ): Promise<OperationDetails> {
 	const allArgs = operations
-		.filter((operation) => marketCommandNames.includes(operation.commandName))
+		.filter(
+			(operation) =>
+				marketCommandNames.includes(operation.commandName) ||
+				operation.commandName === CommandName.PERPS_V2_MODIFY_MARGIN
+		)
 		.flatMap((operation) => operation.decodedArgs) as (bigint | Address)[];
 
 	let market = allArgs.find((arg) => typeof arg === 'string' && isAddress(arg)) as Address;
 
-	const modifyMargin = operations.find((operation) => operation.commandName === commandsValues[2]);
+	const modifyMargin = operations.find(
+		(operation) => operation.commandName === CommandName.PERPS_V2_MODIFY_MARGIN
+	);
+
 	const firstMarketOperation = operations.find((operation) =>
 		isMarketCommand(operation.commandName)
 	);
@@ -89,14 +95,17 @@ async function parseOperationDetails(
 
 		amount = firstMarketOperation.decodedArgs[1] as bigint;
 
+		// Modify existing position
 		if (marketPosition) {
 			proportion = bigintToNumber(amount) / bigintToNumber(marketPosition.position.size);
+			// Close position
 			if (isClosePositionCommand(firstCommandName)) {
 				proportion = 1;
 				amount = marketPosition.position.size;
 				type = isShortPosition(marketPosition)
 					? OperationType.CLOSE_SHORT
 					: OperationType.CLOSE_LONG;
+				// Open position
 			} else if (isOpenPositionCommand(firstCommandName)) {
 				type = isShortPosition(marketPosition)
 					? amount < 0n
@@ -106,13 +115,16 @@ async function parseOperationDetails(
 					? OperationType.DECREASE_SIZE
 					: OperationType.INCREASE_SIZE;
 			}
+			// Open new position
 		} else if (isOpenPositionCommand(firstCommandName)) {
 			proportion = bigintToNumber(marginAmount) / bigintToNumber(balance);
 			type = amount < 0n ? OperationType.OPEN_SHORT : OperationType.OPEN_LONG;
 		}
+		// Modify margin
 	} else if (modifyMargin) {
 		type = marginAmount < 0n ? OperationType.DECREASE_MARGIN : OperationType.INCREASE_MARGIN;
 		proportion = bigintToNumber(marginAmount) / bigintToNumber(marketPosition!.position.margin);
+		// Setup conditional order (without market operation)
 	} else if (isSetupConditionalOrderCommand(operations[0].commandName)) {
 		type = OperationType.PLACE_CONDITIONAL_ORDER;
 	}
