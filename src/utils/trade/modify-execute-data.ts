@@ -4,7 +4,11 @@ import { CommandName } from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
 import type { PositionDetail } from '../prepare';
 
-import { type OperationDetails, OperationType } from './parse-operation-details';
+import {
+	type OperationDetails,
+	OperationType,
+	closePositionCommands,
+} from './parse-operation-details';
 
 import type { ExecuteOperation } from '.';
 
@@ -73,6 +77,13 @@ function modifyExecuteData({
 					decodedArgs: newDecodedArgs,
 				},
 			];
+		}
+
+		if (closeOperations.includes(operationDetails.type)) {
+			// TODO: Check for conditional orders here
+			return operations.filter((operation) =>
+				closePositionCommands.includes(operation.commandName)
+			);
 		}
 	}
 

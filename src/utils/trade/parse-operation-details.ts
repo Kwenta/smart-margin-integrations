@@ -33,7 +33,8 @@ interface OperationDetails {
 
 const commandsValues = Object.values(commandsToNames);
 const marketCommandNames = commandsValues.slice(4);
-const closePositionCommands = commandsValues.slice(7, 10);
+// TODO: Move to constants
+export const closePositionCommands = commandsValues.slice(7, 10);
 const openPositionCommands = commandsValues.slice(4, 7);
 const conditionalOrderCommands = commandsValues.slice(11);
 
