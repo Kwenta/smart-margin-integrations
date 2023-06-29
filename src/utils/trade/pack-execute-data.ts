@@ -1,5 +1,6 @@
-import { type Hex, encodeAbiParameters, parseAbiParameters } from 'viem';
+import { type Hex, encodeAbiParameters, encodeFunctionData, parseAbiParameters } from 'viem';
 
+import { SMART_MARGIN_ACCOUNT_ABI } from '../../abi';
 import { commandsAbis, commandsToNames } from '../../constants/commands';
 import type { ExecuteOperation } from '../trade/parse-execute-data';
 
@@ -20,7 +21,11 @@ function packExecuteData(operations: ExecuteOperation[]) {
 		args.push(encodedArgs);
 	}
 
-	return [commands, args];
+	return encodeFunctionData({
+		abi: SMART_MARGIN_ACCOUNT_ABI,
+		functionName: 'execute',
+		args: [commands, args],
+	});
 }
 
 export { packExecuteData };
