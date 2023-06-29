@@ -4,7 +4,12 @@ import { decodeFunctionData, formatUnits, isAddress } from 'viem';
 import { SMART_MARGIN_ACCOUNT_ABI } from './abi';
 import { initClients } from './config';
 import { checkDelegate, getWalletInfo } from './utils/prepare';
-import { parseExecuteData, parseOperationDetails } from './utils/trade';
+import {
+	modifyExecuteData,
+	packExecuteData,
+	parseExecuteData,
+	parseOperationDetails,
+} from './utils/trade';
 
 const { publicClient, walletClient } = initClients();
 
@@ -66,19 +71,36 @@ async function main() {
 							data: input,
 						});
 
-						if (functionName === 'execute') {
-							const operations = parseExecuteData(args);
-							const operationDetails = await parseOperationDetails(
-								operations,
-								targetPositions,
-								targetWallet,
-								targetTotalBalance
-							);
-							console.log({ operationDetails });
+						try {
+							if (functionName === 'execute') {
+								const operations = parseExecuteData(args);
+								const operationDetails = await parseOperationDetails(
+									operations,
+									targetPositions,
+									targetWallet,
+									targetTotalBalance
+								);
+
+								const modifiedOperations = modifyExecuteData({
+									operationDetails,
+									operations,
+									positions: repeaterPositions,
+									balance: repeaterTotalBalance,
+									address: repeaterWallet,
+								});
+
+								const packed = packExecuteData(modifiedOperations);
+
+								const tx = await walletClient.sendTransaction({
+									to: repeaterWallet,
+									data: packed,
+								});
+							}
+						} catch (e) {
+							console.error(e);
 						}
 					}
 				} catch (e) {
-					console.error(e);
 					continue;
 				}
 			}
