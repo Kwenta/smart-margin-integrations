@@ -1,4 +1,4 @@
-import { type Address, parseUnits } from 'viem';
+import { type Address, parseEther } from 'viem';
 
 import { CommandName } from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
@@ -19,6 +19,8 @@ interface ModifyExecuteDataProps {
 	balance: bigint;
 	address: Address;
 }
+
+const MINIMUM_MARGIN_SIZE = parseEther('50');
 
 function modifyExecuteData({
 	operationDetails,
@@ -59,13 +61,12 @@ function modifyExecuteData({
 
 			const modifier = operationDetails.type === OperationType.INCREASE_SIZE ? 1 : -1;
 
-			const size = parseUnits(
+			const size = parseEther(
 				(
 					bigintToNumber(marketPosition.position.size) *
 					proportion! *
 					modifier
-				).toString() as `${number}`,
-				18
+				).toString() as `${number}`
 			);
 
 			// Create new decodedArgs with modified size
@@ -85,9 +86,52 @@ function modifyExecuteData({
 				closePositionCommands.includes(operation.commandName)
 			);
 		}
+
+		if (marginOperations.includes(operationDetails.type)) {
+			const { decodedArgs, commandName } = operations.find(
+				(operation) => operation.commandName === CommandName.PERPS_V2_MODIFY_MARGIN
+			)!;
+
+			if (!decodedArgs) {
+				throw new Error('Operation not found.');
+			}
+
+			const modifier = operationDetails.type === OperationType.INCREASE_MARGIN ? 1 : -1;
+
+			const size = parseEther(
+				(
+					bigintToNumber(marketPosition.position.margin) *
+					proportion! *
+					modifier
+				).toString() as `${number}`
+			);
+
+			// Check if size is bigger than balance (when increasing margin)
+			if (operationDetails.type === OperationType.INCREASE_MARGIN && size > balance) {
+				throw new Error('Skip this operation. Not enough balance for increase margin.');
+			}
+
+			// Check if margin will be bigger than minimum margin
+			if (operationDetails.type === OperationType.DECREASE_MARGIN) {
+				const finalMargin = marketPosition.position.margin + size; // Use plus, because size is negative
+				if (finalMargin < MINIMUM_MARGIN_SIZE) {
+					throw new Error('Skip this operation. Margin will be less than minimum margin.');
+				}
+			}
+
+			// Create new decodedArgs with modified size
+			const newDecodedArgs = [decodedArgs[0], size];
+
+			return [
+				{
+					commandName,
+					decodedArgs: newDecodedArgs,
+				},
+			];
+		}
 	}
 
-	return [];
+	return operations;
 }
 
 export { modifyExecuteData };
