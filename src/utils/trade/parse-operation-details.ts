@@ -1,12 +1,11 @@
 import type { Address } from 'viem';
 import { formatEther, isAddress } from 'viem';
 
-import type { PositionDetail } from 'utils/prepare/get-positions';
-
 import { SMART_MARGIN_ACCOUNT_ABI } from '../../abi';
 import { initClients } from '../../config';
 import type { CommandName } from '../../constants/commands';
 import { commandsToNames } from '../../constants/commands';
+import type { PositionDetail } from '../prepare';
 
 import type { ExecuteOperation } from './parse-execute-data';
 
@@ -145,4 +144,5 @@ async function parseOperationDetails(
 	};
 }
 
-export { parseOperationDetails };
+export { parseOperationDetails, isShortPosition, OperationType };
+export type { OperationDetails };
