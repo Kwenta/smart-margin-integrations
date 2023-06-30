@@ -3,6 +3,7 @@ import { decodeFunctionData, formatUnits, isAddress } from 'viem';
 
 import { SMART_MARGIN_ACCOUNT_ABI } from './abi';
 import { initClients } from './config';
+import { getExecuteArguments } from './utils/helpers';
 import { checkDelegate, getWalletInfo } from './utils/prepare';
 import {
 	modifyExecuteData,
@@ -14,8 +15,7 @@ import {
 const { publicClient, walletClient } = initClients();
 
 async function main() {
-	const targetWallet = process.env.TARGET_SMART_ADDRESS;
-	const repeaterWallet = process.env.REPEATER_SMART_ADDRESS;
+	const { target: targetWallet, repeater: repeaterWallet } = getExecuteArguments();
 
 	if (!targetWallet) {
 		throw new Error('TARGET_SMART_ADDRESS is not set');
