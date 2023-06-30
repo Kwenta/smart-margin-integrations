@@ -6,9 +6,8 @@ This service is an illustrative example of how you can construct delegation serv
 
 - [Node.js v16](https://nodejs.org/en) or higher
 - Executor wallet with some ETH for gas fees.
-- A Smart Margin account with a delegate executor [see FAQ](#smart-margin-faq).
-– JSON-RPC URL for the chain you are using.
-  You can use public RPC nodes from [Chainlist](https://chainlist.org/), but we recommend running your own node for extended rate limits and security reasons.
+- A Smart Margin account with a delegate executor ([see FAQ])(#smart-margin-faq).
+- JSON-RPC URL for the chain you are using. You can use public RPC nodes from [Chainlist](https://chainlist.org/), but we recommend running your own node for extended rate limits and security reasons.
 
 ## How it works
 
