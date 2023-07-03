@@ -116,6 +116,14 @@ async function modifyExecuteData({
 
 			const modifiedArgs = [...openDecodedArgs];
 			modifiedArgs[1] = modifiedSize;
+
+			if (marketPosition.remainingMargin > 0n) {
+				responseOperations.push({
+					commandName: CommandName.PERPS_V2_WITHDRAW_ALL_MARGIN,
+					decodedArgs: [market],
+				});
+			}
+
 			responseOperations.push(
 				{
 					commandName: CommandName.PERPS_V2_MODIFY_MARGIN,
