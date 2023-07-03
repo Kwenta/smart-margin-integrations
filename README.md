@@ -18,6 +18,15 @@ This service is an illustrative example of how you can construct delegation serv
 5. Service will execute trades only if target wallet has enough sUSD to execute trade.
 6. Service can copy open/close trades, modify margin, modify size, set stop loss and take profit conditional orders.
 
+## Edge cases
+
+Since the script works by calculating the proportions of trades, there may be some trades that will not be executed by this script.
+
+1. If the target wallet opens a trade for 50% of its deposit (e.g. $1,000) and you only have $99 available, the position opening will be ignored (due to the minimum position size of $50).
+2. If the target wallet performs any type of operation on an existing market position (increase/decrease size, change margin, close position) and your wallet didn't have the same position, then this operation will be ignored.
+3. If the target wallet increases the margin size of the position - the script will take the same percentage of your position. If there is not enough sUSD in your account to execute a trade, it's trade will be ignored.
+4. If the target wallet decreases the margin size of the position - the script will take the same percentage of your position. If your position has less than $50 of collateral after margin decrease, it's trade will be ignored.
+
 ## Installation
 
 ```bash
