@@ -45,6 +45,7 @@ async function getWalletInfo({ address, withOwnerBalance = false }: GetWalletInf
 	return {
 		positions,
 		idleMargin,
+		smartBalance: balance,
 		totalBalance,
 	};
 }

@@ -61,7 +61,8 @@ async function parseOperationDetails(
 	operations: ExecuteOperation[],
 	positions: PositionDetail[],
 	address: Address,
-	balance: bigint
+	balance: bigint,
+	repeaterBalance: bigint
 ): Promise<OperationDetails> {
 	const allArgs = operations
 		.filter(
@@ -117,7 +118,7 @@ async function parseOperationDetails(
 			}
 			// Open new position
 		} else if (isOpenPositionCommand(firstCommandName)) {
-			proportion = bigintToNumber(marginAmount) / bigintToNumber(balance);
+			proportion = bigintToNumber(repeaterBalance) / bigintToNumber(balance);
 			type = amount < 0n ? OperationType.OPEN_SHORT : OperationType.OPEN_LONG;
 		}
 		// Modify margin

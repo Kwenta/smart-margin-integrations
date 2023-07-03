@@ -1,7 +1,10 @@
+import type { PositionDetail } from '../prepare';
+import { getIdleMargin } from '../prepare';
 import type { IdlePosition } from '../prepare/get-idle-margin';
 
-function selectPositionsForWidthdraw(positions: IdlePosition[], amount: bigint): IdlePosition[] {
-	const sortedPositions = positions.sort((a, b) => (b.idleMargin > a.idleMargin ? 1 : -1));
+function selectPositionsForWidthdraw(positions: PositionDetail[], amount: bigint): IdlePosition[] {
+	const { positions: idlePositions } = getIdleMargin(positions);
+	const sortedPositions = idlePositions.sort((a, b) => (b.idleMargin > a.idleMargin ? 1 : -1));
 
 	const selectedPositions: IdlePosition[] = [];
 	let remainingAmount = amount;

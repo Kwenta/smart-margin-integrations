@@ -46,7 +46,7 @@ async function main() {
 		withOwnerBalance: true,
 	});
 
-	const { positions: repeaterPositions, totalBalance: repeaterTotalBalance } = await getWalletInfo({
+	const { totalBalance: repeaterTotalBalance } = await getWalletInfo({
 		address: repeaterWallet,
 		// Delegate can't use owner sUSD balance, so we don't need to include it in the total balance
 		withOwnerBalance: false,
@@ -78,14 +78,13 @@ async function main() {
 									operations,
 									targetPositions,
 									targetWallet,
-									targetTotalBalance
+									targetTotalBalance,
+									repeaterTotalBalance
 								);
 
-								const modifiedOperations = modifyExecuteData({
+								const modifiedOperations = await modifyExecuteData({
 									operationDetails,
 									operations,
-									positions: repeaterPositions,
-									balance: repeaterTotalBalance,
 									address: repeaterWallet,
 								});
 
