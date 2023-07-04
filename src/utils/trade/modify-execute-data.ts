@@ -3,6 +3,7 @@ import { type Address, parseEther } from 'viem';
 import { CommandName, closePositionCommands } from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
 import { getWalletInfo } from '../prepare';
+import { getConditionalOrders } from '../prepare/get-conditional-orders';
 
 import { type OperationDetails, OperationType } from './parse-operation-details';
 
@@ -169,10 +170,24 @@ async function modifyExecuteData({
 		}
 
 		if (closeOperations.includes(operationDetails.type)) {
-			// TODO: Check for conditional orders here
-			return operations.filter((operation) =>
-				closePositionCommands.includes(operation.commandName)
+			const responseOperations: ExecuteOperation[] = [];
+			const conditionalOrders = await getConditionalOrders(address);
+			const ordersForMarket = conditionalOrders.filter(
+				(order) => order.marketKey === marketPosition.market.key
 			);
+
+			ordersForMarket.forEach((order) => {
+				responseOperations.push({
+					commandName: CommandName.GELATO_CANCEL_CONDITIONAL_ORDER,
+					decodedArgs: [order.index],
+				});
+			});
+
+			operations
+				.filter((operation) => closePositionCommands.includes(operation.commandName))
+				.forEach((operation) => responseOperations.push(operation));
+
+			return responseOperations;
 		}
 
 		if (marginOperations.includes(operationDetails.type)) {
