@@ -3,8 +3,17 @@ import { isAddress } from 'viem';
 
 import { SMART_MARGIN_ACCOUNT_ABI } from '../../abi';
 import { initClients } from '../../config';
-import { CommandName, commandsToNames } from '../../constants/commands';
+import {
+	CommandName,
+	conditionalOrderCommands,
+	isClosePositionCommand,
+	isMarketCommand,
+	isOpenPositionCommand,
+	isSetupConditionalOrderCommand,
+	marketCommandNames,
+} from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
+import { isShortPosition } from '../helpers/is-short-position';
 import type { PositionDetail } from '../prepare';
 
 import type { ExecuteOperation } from './parse-execute-data';
@@ -28,33 +37,6 @@ interface OperationDetails {
 	amount: bigint;
 	marginAmount?: bigint;
 	proportion?: number;
-}
-
-const commandsValues = Object.values(commandsToNames);
-const marketCommandNames = commandsValues.slice(4);
-// TODO: Move to constants
-export const closePositionCommands = commandsValues.slice(7, 10);
-const openPositionCommands = commandsValues.slice(4, 7);
-const conditionalOrderCommands = commandsValues.slice(11);
-
-function isShortPosition(position: PositionDetail): boolean {
-	return position.position.size < 0n;
-}
-
-function isMarketCommand(commandName: CommandName): boolean {
-	return marketCommandNames.includes(commandName);
-}
-
-function isOpenPositionCommand(commandName: CommandName): boolean {
-	return openPositionCommands.includes(commandName);
-}
-
-function isClosePositionCommand(commandName: CommandName): boolean {
-	return closePositionCommands.includes(commandName);
-}
-
-function isSetupConditionalOrderCommand(commandName: CommandName): boolean {
-	return commandName === commandsValues[12];
 }
 
 async function parseOperationDetails(

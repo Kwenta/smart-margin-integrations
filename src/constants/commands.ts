@@ -49,4 +49,39 @@ const commandsToNames: Record<number, CommandName> = {
 	13: CommandName.GELATO_CANCEL_CONDITIONAL_ORDER,
 };
 
-export { CommandName, commandsAbis, commandsToNames };
+const commandsValues = Object.values(commandsToNames);
+const marketCommandNames = commandsValues.slice(4);
+const closePositionCommands = commandsValues.slice(7, 10);
+const openPositionCommands = commandsValues.slice(4, 7);
+const conditionalOrderCommands = commandsValues.slice(11);
+
+function isMarketCommand(commandName: CommandName): boolean {
+	return marketCommandNames.includes(commandName);
+}
+
+function isOpenPositionCommand(commandName: CommandName): boolean {
+	return openPositionCommands.includes(commandName);
+}
+
+function isClosePositionCommand(commandName: CommandName): boolean {
+	return closePositionCommands.includes(commandName);
+}
+
+function isSetupConditionalOrderCommand(commandName: CommandName): boolean {
+	return commandName === commandsValues[12];
+}
+
+export {
+	CommandName,
+	commandsAbis,
+	commandsToNames,
+	conditionalOrderCommands,
+	commandsValues,
+	closePositionCommands,
+	openPositionCommands,
+	marketCommandNames,
+	isMarketCommand,
+	isOpenPositionCommand,
+	isClosePositionCommand,
+	isSetupConditionalOrderCommand,
+};

@@ -1,14 +1,10 @@
 import { type Address, parseEther } from 'viem';
 
-import { CommandName } from '../../constants/commands';
+import { CommandName, closePositionCommands } from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
 import { getWalletInfo } from '../prepare';
 
-import {
-	type OperationDetails,
-	OperationType,
-	closePositionCommands,
-} from './parse-operation-details';
+import { type OperationDetails, OperationType } from './parse-operation-details';
 
 import { type ExecuteOperation, selectPositionsForWidthdraw } from '.';
 
