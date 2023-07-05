@@ -19,7 +19,7 @@ interface ModifyExecuteDataProps {
 	address: Address;
 }
 
-const MAX_INT_256 = 2n ** 256n - 1n;
+const MAX_INT_256 = 57896044618658097711785492504343953926634992332820282019728792003956564819967n;
 const MINIMUM_MARGIN_SIZE = parseEther('50');
 
 async function modifyExecuteData({
@@ -275,7 +275,7 @@ async function modifyExecuteData({
 					decodedArgs: [
 						marketPosition.market.key,
 						0n,
-						marketPosition.position.size,
+						MAX_INT_256,
 						takeProfit.price,
 						ConditionalOrderTypeEnum.LIMIT,
 						takeProfit.desiredFillPrice,

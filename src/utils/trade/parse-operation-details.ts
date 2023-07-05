@@ -164,25 +164,33 @@ async function parseOperationDetails(
 		}
 
 		if (cancelOperations.length > placeOperations.length) {
+			const order = orders.find(
+				(order) => order.index === (cancelOperations[0].decodedArgs[0] as bigint)
+			);
+			if (!order) {
+				throw new Error('Order not found');
+			}
+			const { targetPrice, desiredFillPrice } = order;
+
 			if (takeProfit) {
-				conditionalParams.stopLoss!.isCancelled = true;
+				conditionalParams.stopLoss = {
+					isCancelled: true,
+					desiredFillPrice,
+					price: targetPrice,
+				};
 			} else if (stopLoss) {
-				conditionalParams.takeProfit!.isCancelled = true;
+				conditionalParams.takeProfit = {
+					isCancelled: true,
+					desiredFillPrice,
+					price: targetPrice,
+				};
 			} else {
-				const order = orders.find(
-					(order) => order.index === (cancelOperations[0].decodedArgs[0] as bigint)
-				);
-
-				if (!order) {
-					throw new Error('Order not found');
-				}
-
 				const findedMarket = positions.find((position) => position.market.key === order.marketKey)
 					?.market.market;
 				if (findedMarket) {
 					market = findedMarket;
 				}
-				const { targetPrice, desiredFillPrice } = order;
+
 				if (order.conditionalOrderType === ConditionalOrderTypeEnum.LIMIT) {
 					conditionalParams.takeProfit = {
 						price: targetPrice,
