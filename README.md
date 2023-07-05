@@ -6,14 +6,14 @@ This repo is intended to be a bucket of example scripts that traders can run on 
 
 This service is an illustrative example of how you can construct delegation services for Kwenta Smart Margin using viem. The service allows you to replicate trades from a target wallet to a repeater wallet, allowing automated trading in proportion to the target wallet's activities. This is ideal for traders who wish to automate their trading strategies or follow the trades of another user.
 
-## Pre-requisites
+### Pre-requisites
 
 - [Node.js v16](https://nodejs.org/en) or higher
 - Executor wallet with some ETH for gas fees.
 - A Smart Margin account with a delegate executor ([see FAQ])(#smart-margin-faq).
 - JSON-RPC URL for the chain you are using. You can use public RPC nodes from [Chainlist](https://chainlist.org/), but we recommend running your own node for extended rate limits and security reasons.
 
-## How it works
+### How it works
 
 1. User delegates to the executor EOA on your Smart Margin account.
 2. User runs this service with the delegated EOA, target Smart Margin Account, and your Smart Margin account addresses.
@@ -22,7 +22,7 @@ This service is an illustrative example of how you can construct delegation serv
 5. Service will execute trades only if your Smart Margin account has enough sUSD to execute trade.
 6. Service can copy open/close trades, modify margin, modify size, set stop loss and take profit conditional orders.
 
-## Edge cases
+### Edge cases
 
 Since the script works by calculating the proportions of trades, there may be some trades that will not be executed by this script.
 
@@ -31,13 +31,13 @@ Since the script works by calculating the proportions of trades, there may be so
 3. If the target Smart Margin account increases the margin size of the position - the script will take the same percentage of your position. If there is not enough sUSD in your account to execute a trade, it's trade will be ignored.
 4. If the target Smart Margin account decreases the margin size of the position - the script will take the same percentage of your position. If your position has less than $50 of collateral after margin decrease, it's trade will be ignored.
 
-## Installation
+### Installation
 
 ```bash
 npm install
 ```
 
-## Usage
+### Usage
 
 First, you need to create a `.env` file with the following variables:
 
