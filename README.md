@@ -11,21 +11,21 @@ This service is an illustrative example of how you can construct delegation serv
 
 ## How it works
 
-1. User add delegate EOA to his Smart Margin account.
-2. User run this service with his delegate EOA and target and repeater Smart Margin account addresses.
-3. Service will listen for new trades on target Smart Margin account and execute them on repeater Smart Margin account.
-4. Service works with amount proportions. If target wallet has 1000 sUSD, and repeater wallet has 500 sUSD, service will execute all of trades with 50% from target sizes.
-5. Service will execute trades only if target wallet has enough sUSD to execute trade.
+1. User delegates to the executor EOA on your Smart Margin account.
+2. User runs this service with the delegated EOA, target Smart Margin Account, and your Smart Margin account addresses.
+3. Service will listen for new trades on target Smart Margin account and execute them on your Smart Margin account.
+4. Service works with amount proportions. If target Smart Margin Account has 1000 sUSD, and your Smart Margin Account has 500 sUSD, service will execute all of trades with 50% from target sizes.
+5. Service will execute trades only if your Smart Margin account has enough sUSD to execute trade.
 6. Service can copy open/close trades, modify margin, modify size, set stop loss and take profit conditional orders.
 
 ## Edge cases
 
 Since the script works by calculating the proportions of trades, there may be some trades that will not be executed by this script.
 
-1. If the target wallet opens a trade for 50% of its deposit (e.g. $1,000) and you only have $99 available, the position opening will be ignored (due to the minimum position size of $50).
-2. If the target wallet performs any type of operation on an existing market position (increase/decrease size, change margin, close position) and your wallet didn't have the same position, then this operation will be ignored.
-3. If the target wallet increases the margin size of the position - the script will take the same percentage of your position. If there is not enough sUSD in your account to execute a trade, it's trade will be ignored.
-4. If the target wallet decreases the margin size of the position - the script will take the same percentage of your position. If your position has less than $50 of collateral after margin decrease, it's trade will be ignored.
+1. If the target Smart Margin account opens a trade for 50% of its deposit (e.g. $1,000) and you only have $99 available, the position opening will be ignored (due to the minimum position size of $50).
+2. If the target Smart Margin account performs any type of operation on an existing market position (increase/decrease size, change margin, close position) and your Smart Margin account didn't have the same position, then this operation will be ignored.
+3. If the target Smart Margin account increases the margin size of the position - the script will take the same percentage of your position. If there is not enough sUSD in your account to execute a trade, it's trade will be ignored.
+4. If the target Smart Margin account decreases the margin size of the position - the script will take the same percentage of your position. If your position has less than $50 of collateral after margin decrease, it's trade will be ignored.
 
 ## Installation
 
@@ -61,14 +61,14 @@ Then, you can run the scripts with following arguments:
 
 You can read more about Smart Margin in [Kwenta DOCS](https://docs.kwenta.io/using-kwenta/smart-margin).
 
-### How i can get my smart margin account address?
+### How I can get my smart margin account address?
 
 1. Go to Smart Margin Factory in explorer. [Optimism mainnet](https://optimistic.etherscan.io/address/0x8234f990b149ae59416dc260305e565e5dafeb54#readContract), [Optimism Goerli]()
 2. Open **Read Contract** tab and call `getAccountsOwnedBy` function with your wallet address as an argument.
 
 ![getAccountsOwnedBy](./assets/get-smart-margin.jpeg?raw=true)
 
-### How i can add a delegate to my smart margin account?
+### How I can add a delegate to my smart margin account?
 
 1. Go to Smart Margin account in explorer (you can find it in [Smart Margin Factory](#how-i-can-get-my-smart-margin-account-address)).
 2. If your contract doesn't have methods, you need to open tab **Code** and Click on **More Options** and select **Is this a proxy?** to confirm and enable the "Read as Proxy" & "Write as Proxy" tabs.
@@ -78,7 +78,7 @@ You can read more about Smart Margin in [Kwenta DOCS](https://docs.kwenta.io/usi
 
 ![addDelegate](./assets/add-delegate.jpeg?raw=true)
 
-### How i can remove a delegate from my smart margin account?
+### How I can remove a delegate from my smart margin account?
 
 1. Go to Smart Margin account in explorer (you can find it in [Smart Margin Factory](#how-i-can-get-my-smart-margin-account-address)).
 2. If your contract doesn't have methods, you need to open tab **Code** and Click on **More Options** and select **Is this a proxy?** to confirm and enable the "Read as Proxy" & "Write as Proxy" tabs.
