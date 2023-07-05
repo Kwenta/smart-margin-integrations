@@ -1,4 +1,8 @@
-# Copytrading example service for Kwenta Smart Margin
+# Smart Margin Integrations
+
+This repo is intended to be a bucket of example scripts that traders can run on a delegated smart margin account. For example, copytrading, grid trading, or any other automated trading service...
+
+## Copytrading example service for Kwenta Smart Margin
 
 This service is an illustrative example of how you can construct delegation services for Kwenta Smart Margin using viem. The service allows you to replicate trades from a target wallet to a repeater wallet, allowing automated trading in proportion to the target wallet's activities. This is ideal for traders who wish to automate their trading strategies or follow the trades of another user.
 
