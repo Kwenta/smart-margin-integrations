@@ -32,16 +32,20 @@ function initClients() {
 		throw new Error('Invalid private key');
 	}
 
+	const publicClient = createPublicClient({
+		transport: http(rpcUrl),
+		chain: chainId === '10' ? optimism : optimismGoerli,
+	});
+
+	const walletClient = createWalletClient({
+		transport: http(rpcUrl),
+		chain: chainId === '10' ? optimism : optimismGoerli,
+		account: privateKeyToAccount(privateKey),
+	});
+
 	return {
-		publicClient: createPublicClient({
-			transport: http(rpcUrl),
-			chain: chainId === '10' ? optimism : optimismGoerli,
-		}),
-		walletClient: createWalletClient({
-			transport: http(rpcUrl),
-			chain: chainId === '10' ? optimism : optimismGoerli,
-			account: privateKeyToAccount(privateKey),
-		}),
+		publicClient,
+		walletClient,
 	};
 }
 

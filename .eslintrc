@@ -18,7 +18,11 @@
 		"jsonc/indent": "off",
 		"@typescript-eslint/semi": "off",
 		"@typescript-eslint/indent": "off",
+		"@typescript-eslint/member-delimiter-style": "off",
+		"@typescript-eslint/comma-dangle": "off",
+		"operator-linebreak": "off",
 		"curly": "off",
+		"arrow-parens": "off",
 		"import/no-anonymous-default-export": "off",
 		"@typescript-eslint/no-unused-vars": [
 			"warn",
@@ -28,6 +32,7 @@
 				"caughtErrorsIgnorePattern": "^_"
 			}
 		],
+		"@typescript-eslint/brace-style": "off",
 		"import/order": [
 			"warn",
 			{
