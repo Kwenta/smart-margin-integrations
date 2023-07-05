@@ -41,14 +41,14 @@ async function main() {
 		return;
 	}
 
-	const { positions: targetPositions, totalBalance: targetTotalBalance } = await getWalletInfo({
+	let { positions: targetPositions, totalBalance: targetTotalBalance } = await getWalletInfo({
 		address: targetWallet,
 		// Target can use own sUSD balance, so we need to include it in the total balance
 		withOwnerBalance: true,
 	});
-	const targetConditionalOrders = await getConditionalOrders(targetWallet);
+	let targetConditionalOrders = await getConditionalOrders(targetWallet);
 
-	const { totalBalance: repeaterTotalBalance } = await getWalletInfo({
+	let { totalBalance: repeaterTotalBalance } = await getWalletInfo({
 		address: repeaterWallet,
 		// Delegate can't use owner sUSD balance, so we don't need to include it in the total balance
 		withOwnerBalance: false,
@@ -91,6 +91,11 @@ async function main() {
 									address: repeaterWallet,
 								});
 
+								if (modifiedOperations.length === 0) {
+									console.log('Operations list is empty. Skip this transaction');
+									continue;
+								}
+
 								const packed = packExecuteData(modifiedOperations);
 
 								const tx = await walletClient.sendTransaction({
@@ -100,6 +105,24 @@ async function main() {
 							}
 						} catch (e) {
 							console.error(e);
+						} finally {
+							targetConditionalOrders = await getConditionalOrders(targetWallet);
+							const updatedTarget = await getWalletInfo({
+								address: targetWallet,
+								// Target can use own sUSD balance, so we need to include it in the total balance
+								withOwnerBalance: true,
+							});
+
+							targetPositions = updatedTarget.positions;
+							targetTotalBalance = updatedTarget.totalBalance;
+
+							const updatedRepeater = await getWalletInfo({
+								address: repeaterWallet,
+								// Delegate can't use owner sUSD balance, so we don't need to include it in the total balance
+								withOwnerBalance: false,
+							});
+
+							repeaterTotalBalance = updatedRepeater.totalBalance;
 						}
 					}
 				} catch (e) {
