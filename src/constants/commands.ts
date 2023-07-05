@@ -15,6 +15,11 @@ const commandsAbis: Record<number, string> = {
 	13: 'uint256 orderId',
 };
 
+enum ConditionalOrderTypeEnum {
+	LIMIT = 0,
+	STOP = 1,
+}
+
 enum CommandName {
 	ACCOUNT_MODIFY_MARGIN = 'ACCOUNT_MODIFY_MARGIN',
 	ACCOUNT_WITHDRAW_ETH = 'ACCOUNT_WITHDRAW_ETH',
@@ -50,7 +55,7 @@ const commandsToNames: Record<number, CommandName> = {
 };
 
 const commandsValues = Object.values(commandsToNames);
-const marketCommandNames = commandsValues.slice(4);
+const marketCommandNames = commandsValues.slice(4, 10);
 const closePositionCommands = commandsValues.slice(7, 10);
 const openPositionCommands = commandsValues.slice(4, 7);
 const conditionalOrderCommands = commandsValues.slice(11);
@@ -73,6 +78,7 @@ function isSetupConditionalOrderCommand(commandName: CommandName): boolean {
 
 export {
 	CommandName,
+	ConditionalOrderTypeEnum,
 	commandsAbis,
 	commandsToNames,
 	conditionalOrderCommands,

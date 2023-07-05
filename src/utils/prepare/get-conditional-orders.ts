@@ -61,3 +61,4 @@ async function getConditionalOrders(address: Address) {
 }
 
 export { getConditionalOrders };
+export type { OrdersResponse };

@@ -1,20 +1,19 @@
 import type { Address } from 'viem';
 import { isAddress } from 'viem';
 
-import { SMART_MARGIN_ACCOUNT_ABI } from '../../abi';
-import { initClients } from '../../config';
 import {
 	CommandName,
+	ConditionalOrderTypeEnum,
 	conditionalOrderCommands,
 	isClosePositionCommand,
 	isMarketCommand,
 	isOpenPositionCommand,
-	isSetupConditionalOrderCommand,
 	marketCommandNames,
 } from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
 import { isShortPosition } from '../helpers/is-short-position';
 import type { PositionDetail } from '../prepare';
+import type { OrdersResponse } from '../prepare/get-conditional-orders';
 
 import type { ExecuteOperation } from './parse-execute-data';
 
@@ -28,7 +27,19 @@ enum OperationType {
 	INCREASE_SIZE = 'INCREASE_SIZE',
 	DECREASE_SIZE = 'DECREASE_SIZE',
 	PLACE_CONDITIONAL_ORDER = 'PLACE_CONDITIONAL_ORDER',
-	CANCEL_CONDITIONAL_ORDER = 'CANCEL_CONDITIONAL_ORDER',
+}
+
+interface ConditionalParams {
+	stopLoss?: {
+		price: bigint;
+		desiredFillPrice: bigint;
+		isCancelled?: boolean;
+	};
+	takeProfit?: {
+		price: bigint;
+		desiredFillPrice: bigint;
+		isCancelled?: boolean;
+	};
 }
 
 interface OperationDetails {
@@ -37,15 +48,18 @@ interface OperationDetails {
 	amount: bigint;
 	marginAmount?: bigint;
 	proportion?: number;
+	conditionalParams?: ConditionalParams;
 }
 
 async function parseOperationDetails(
 	operations: ExecuteOperation[],
 	positions: PositionDetail[],
+	orders: OrdersResponse[],
 	address: Address,
 	balance: bigint,
 	repeaterBalance: bigint
 ): Promise<OperationDetails> {
+	const conditionalParams: ConditionalParams = {};
 	const allArgs = operations
 		.filter(
 			(operation) =>
@@ -71,7 +85,7 @@ async function parseOperationDetails(
 	let amount = 0n;
 	let proportion = 1;
 	const marginAmount = modifyMargin?.decodedArgs[1] as bigint;
-	let type: OperationType = OperationType.CANCEL_CONDITIONAL_ORDER;
+	let type: OperationType = OperationType.PLACE_CONDITIONAL_ORDER;
 
 	if (firstMarketOperation) {
 		const { commandName: firstCommandName } = firstMarketOperation;
@@ -108,31 +122,93 @@ async function parseOperationDetails(
 		type = marginAmount < 0n ? OperationType.DECREASE_MARGIN : OperationType.INCREASE_MARGIN;
 		proportion = bigintToNumber(marginAmount) / bigintToNumber(marketPosition!.position.margin);
 		// Setup conditional order (without market operation)
-	} else if (isSetupConditionalOrderCommand(operations[0].commandName)) {
-		type = OperationType.PLACE_CONDITIONAL_ORDER;
-	}
+	} else if (
+		operations.some((operation) => conditionalOrderCommands.includes(operation.commandName))
+	) {
+		const placeOperations = operations.filter(
+			(operation) => operation.commandName === CommandName.GELATO_PLACE_CONDITIONAL_ORDER
+		);
 
-	if (conditionalOrderCommands.includes(operations[0].commandName)) {
-		const { publicClient } = initClients();
-		const orderDetail = await publicClient.readContract({
-			abi: SMART_MARGIN_ACCOUNT_ABI,
-			address,
-			functionName: 'getConditionalOrder',
-			args: [operations[0].decodedArgs[0] as bigint],
-		});
+		const cancelOperations = operations.filter(
+			(operation) => operation.commandName === CommandName.GELATO_CANCEL_CONDITIONAL_ORDER
+		);
 
-		const findedMarket = positions.find((position) => position.market.key === orderDetail.marketKey)
-			?.market.market;
-		if (findedMarket) {
-			market = findedMarket;
+		const takeProfit = placeOperations.find(
+			(operation) => operation.decodedArgs[4] === ConditionalOrderTypeEnum.LIMIT
+		);
+
+		const stopLoss = placeOperations.find(
+			(operation) => operation.decodedArgs[4] === ConditionalOrderTypeEnum.STOP
+		);
+
+		if (takeProfit || stopLoss) {
+			const findedMarket = positions.find(
+				(position) => position.market.key === placeOperations[0].decodedArgs[0]
+			)?.market.market;
+			if (findedMarket) {
+				market = findedMarket;
+			}
+		}
+		if (takeProfit) {
+			conditionalParams.takeProfit = {
+				price: takeProfit.decodedArgs[3] as bigint,
+				desiredFillPrice: takeProfit.decodedArgs[5] as bigint,
+			};
+		}
+
+		if (stopLoss) {
+			conditionalParams.stopLoss = {
+				price: stopLoss.decodedArgs[3] as bigint,
+				desiredFillPrice: stopLoss.decodedArgs[5] as bigint,
+			};
+		}
+
+		if (cancelOperations.length > placeOperations.length) {
+			if (takeProfit) {
+				conditionalParams.stopLoss!.isCancelled = true;
+			} else if (stopLoss) {
+				conditionalParams.takeProfit!.isCancelled = true;
+			} else {
+				const order = orders.find(
+					(order) => order.index === (cancelOperations[0].decodedArgs[0] as bigint)
+				);
+
+				if (!order) {
+					throw new Error('Order not found');
+				}
+
+				const findedMarket = positions.find((position) => position.market.key === order.marketKey)
+					?.market.market;
+				if (findedMarket) {
+					market = findedMarket;
+				}
+				const { targetPrice, desiredFillPrice } = order;
+				if (order.conditionalOrderType === ConditionalOrderTypeEnum.LIMIT) {
+					conditionalParams.takeProfit = {
+						price: targetPrice,
+						desiredFillPrice,
+						isCancelled: true,
+					};
+				}
+
+				if (order.conditionalOrderType === ConditionalOrderTypeEnum.STOP) {
+					conditionalParams.stopLoss = {
+						price: targetPrice,
+						desiredFillPrice,
+						isCancelled: true,
+					};
+				}
+			}
 		}
 	}
+
 	return {
 		type,
 		market,
 		amount,
 		proportion: Math.abs(proportion),
 		marginAmount,
+		conditionalParams,
 	};
 }
 

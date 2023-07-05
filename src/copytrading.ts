@@ -5,6 +5,7 @@ import { SMART_MARGIN_ACCOUNT_ABI } from './abi';
 import { initClients } from './config';
 import { getExecuteArguments } from './utils/helpers';
 import { checkDelegate, getWalletInfo } from './utils/prepare';
+import { getConditionalOrders } from './utils/prepare/get-conditional-orders';
 import {
 	modifyExecuteData,
 	packExecuteData,
@@ -45,6 +46,7 @@ async function main() {
 		// Target can use own sUSD balance, so we need to include it in the total balance
 		withOwnerBalance: true,
 	});
+	const targetConditionalOrders = await getConditionalOrders(targetWallet);
 
 	const { totalBalance: repeaterTotalBalance } = await getWalletInfo({
 		address: repeaterWallet,
@@ -77,6 +79,7 @@ async function main() {
 								const operationDetails = await parseOperationDetails(
 									operations,
 									targetPositions,
+									targetConditionalOrders,
 									targetWallet,
 									targetTotalBalance,
 									repeaterTotalBalance

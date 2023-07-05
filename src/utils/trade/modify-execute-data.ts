@@ -1,6 +1,10 @@
 import { type Address, parseEther } from 'viem';
 
-import { CommandName, closePositionCommands } from '../../constants/commands';
+import {
+	CommandName,
+	ConditionalOrderTypeEnum,
+	closePositionCommands,
+} from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
 import { getWalletInfo } from '../prepare';
 import { getConditionalOrders } from '../prepare/get-conditional-orders';
@@ -15,6 +19,7 @@ interface ModifyExecuteDataProps {
 	address: Address;
 }
 
+const MAX_INT_256 = 2n ** 256n - 1n;
 const MINIMUM_MARGIN_SIZE = parseEther('50');
 
 async function modifyExecuteData({
@@ -40,10 +45,7 @@ async function modifyExecuteData({
 	const sizeOperations = [OperationType.INCREASE_SIZE, OperationType.DECREASE_SIZE];
 	const closeOperations = [OperationType.CLOSE_LONG, OperationType.CLOSE_SHORT];
 	const marginOperations = [OperationType.INCREASE_MARGIN, OperationType.DECREASE_MARGIN];
-	const conditionalOperations = [
-		OperationType.CANCEL_CONDITIONAL_ORDER,
-		OperationType.PLACE_CONDITIONAL_ORDER,
-	];
+	const conditionalOperations = [OperationType.PLACE_CONDITIONAL_ORDER];
 	const openOperations = [OperationType.OPEN_LONG, OperationType.OPEN_SHORT];
 
 	const marketOperations = [
@@ -232,6 +234,94 @@ async function modifyExecuteData({
 				},
 			];
 		}
+	} else {
+		const responseOperations: ExecuteOperation[] = [];
+		const conditionalOrders = await getConditionalOrders(address);
+		const ordersForMarket = conditionalOrders.filter(
+			(order) => order.marketKey === marketPosition.market.key
+		);
+
+		const { takeProfit, stopLoss } = operationDetails.conditionalParams!;
+
+		const takeProfitOrders = ordersForMarket.filter(
+			(order) => order.conditionalOrderType === ConditionalOrderTypeEnum.LIMIT
+		);
+
+		const stopLossOrders = ordersForMarket.filter(
+			(order) => order.conditionalOrderType === ConditionalOrderTypeEnum.STOP
+		);
+
+		if (takeProfit) {
+			if (takeProfit.isCancelled) {
+				if (takeProfitOrders) {
+					takeProfitOrders.forEach((order) => {
+						responseOperations.push({
+							commandName: CommandName.GELATO_CANCEL_CONDITIONAL_ORDER,
+							decodedArgs: [order.index],
+						});
+					});
+				}
+			} else {
+				if (takeProfitOrders) {
+					takeProfitOrders.forEach((order) => {
+						responseOperations.push({
+							commandName: CommandName.GELATO_CANCEL_CONDITIONAL_ORDER,
+							decodedArgs: [order.index],
+						});
+					});
+				}
+				responseOperations.push({
+					commandName: CommandName.GELATO_PLACE_CONDITIONAL_ORDER,
+					decodedArgs: [
+						marketPosition.market.key,
+						0n,
+						marketPosition.position.size,
+						takeProfit.price,
+						ConditionalOrderTypeEnum.LIMIT,
+						takeProfit.desiredFillPrice,
+						true,
+					],
+				});
+			}
+		}
+
+		if (stopLoss) {
+			if (stopLoss.isCancelled) {
+				if (stopLossOrders) {
+					stopLossOrders.forEach((order) => {
+						responseOperations.push({
+							commandName: CommandName.GELATO_CANCEL_CONDITIONAL_ORDER,
+							decodedArgs: [order.index],
+						});
+					});
+				} else {
+					console.warn('No stop loss orders found.');
+				}
+			} else {
+				if (stopLossOrders) {
+					stopLossOrders.forEach((order) => {
+						responseOperations.push({
+							commandName: CommandName.GELATO_CANCEL_CONDITIONAL_ORDER,
+							decodedArgs: [order.index],
+						});
+					});
+				}
+				responseOperations.push({
+					commandName: CommandName.GELATO_PLACE_CONDITIONAL_ORDER,
+					decodedArgs: [
+						marketPosition.market.key,
+						0n,
+						MAX_INT_256,
+						stopLoss.price,
+						ConditionalOrderTypeEnum.STOP,
+						stopLoss.desiredFillPrice,
+						true,
+					],
+				});
+			}
+		}
+
+		return responseOperations;
 	}
 
 	return operations;
