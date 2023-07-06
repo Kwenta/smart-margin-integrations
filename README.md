@@ -10,7 +10,7 @@ This service is an illustrative example of how you can construct delegation serv
 
 - [Node.js v16](https://nodejs.org/en) or higher
 - Executor wallet with some ETH for gas fees.
-- A Smart Margin account with a delegate executor ([see FAQ])(#smart-margin-faq).
+- A Smart Margin account with a delegate executor ([see FAQ](#smart-margin-faq)).
 - JSON-RPC URL for the chain you are using. You can use public RPC nodes from [Chainlist](https://chainlist.org/), but we recommend running your own node for extended rate limits and security reasons.
 
 ### How it works
@@ -49,7 +49,7 @@ EXECUTOR_PRIVATE_KEY= # Private key of the EOA wallet that will execute the tran
 
 It's good practice to **use a separate wallet** for transactions, but you need to have some ETH on it for gas fees and add the wallet as a `delegate` to your Smart Margin account.
 
-Read [Smart Margin FAQ](#smart-margin-faq) above for more details.
+Read [Smart Margin FAQ](#smart-margin-faq) for more details.
 
 ---
 
@@ -63,7 +63,7 @@ Then, you can run the scripts with following arguments:
 
 ### What is Smart Margin?
 
-You can read more about Smart Margin in [Kwenta DOCS](https://docs.kwenta.io/using-kwenta/smart-margin).
+You can read more about Smart Margin in [Kwenta Docs](https://docs.kwenta.io/using-kwenta/smart-margin).
 
 ### How I can get my smart margin account address?
 
