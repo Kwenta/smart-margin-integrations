@@ -23,7 +23,7 @@ const MOCK_POSITION: PositionDetail = {
 };
 
 describe('getIdleMargin', () => {
-	it('should correctly calculate idle margin and return positions with idle margin', () => {
+	test('should correctly calculate idle margin and return positions with idle margin', () => {
 		const positions = [{ ...MOCK_POSITION, position: { ...MOCK_POSITION.position, size: 0n } }];
 
 		const result = getIdleMargin(positions);
@@ -37,7 +37,7 @@ describe('getIdleMargin', () => {
 		]);
 	});
 
-	it('should return idleInMarkets as 0 and empty positions array when there are no idle positions', () => {
+	test('should return idleInMarkets as 0 and empty positions array when there are no idle positions', () => {
 		const positions = [
 			{
 				...MOCK_POSITION,
@@ -52,7 +52,7 @@ describe('getIdleMargin', () => {
 		expect(result.positions).toEqual([]);
 	});
 
-	it('should return idleInMarkets as 0 and empty positions array when positions array is empty', () => {
+	test('should return idleInMarkets as 0 and empty positions array when positions array is empty', () => {
 		const positions: PositionDetail[] = [];
 
 		const result = getIdleMargin(positions);
@@ -61,7 +61,7 @@ describe('getIdleMargin', () => {
 		expect(result.positions).toEqual([]);
 	});
 
-	it('should correctly calculate idle margin when positions array has both idle and non-idle positions', () => {
+	test('should correctly calculate idle margin when positions array has both idle and non-idle positions', () => {
 		const positions: PositionDetail[] = [
 			{ ...MOCK_POSITION }, // idle position
 			{

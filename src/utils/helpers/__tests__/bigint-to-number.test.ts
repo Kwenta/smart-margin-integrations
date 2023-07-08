@@ -4,7 +4,7 @@ import { bigintToNumber } from '../bigint-to-number';
 
 describe('bigintToNumber', () => {
 	test('should correctly convert bigint to number', () => {
-		const value = BigInt(10);
+		const value = 10n;
 		const decimals = 6;
 		const expectedResult = 0.00001;
 
@@ -14,8 +14,8 @@ describe('bigintToNumber', () => {
 	});
 
 	test('should correctly convert bigint to number with default decimal value', () => {
-		const value = BigInt(10);
-		const decimals = 18; // This is your default value
+		const value = 10n;
+		const decimals = 18; // This is default value
 		const expectedResult = Number.parseFloat(formatUnits(value, decimals));
 
 		const result = bigintToNumber(value); // We do not pass decimals here to test default

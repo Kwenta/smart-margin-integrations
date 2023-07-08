@@ -14,7 +14,7 @@ jest.mock('../../helpers', () => ({
 }));
 
 describe('getConditionalOrders', () => {
-	it('should return last 3 orders if orders count = 3', async () => {
+	test('should return last 3 orders if orders count = 3', async () => {
 		const randomWallet = privateKeyToAccount(generatePrivateKey());
 
 		const address = randomWallet.address;
@@ -59,7 +59,7 @@ describe('getConditionalOrders', () => {
 			allowFailure: false,
 		});
 	});
-	it('should return last 500 orders if orders count > 500', async () => {
+	test('should return last 500 orders if orders count > 500', async () => {
 		const randomWallet = privateKeyToAccount(generatePrivateKey());
 
 		const address = randomWallet.address;
@@ -105,7 +105,7 @@ describe('getConditionalOrders', () => {
 		});
 	});
 
-	it('should return empty array if orders count = 0', async () => {
+	test('should return empty array if orders count = 0', async () => {
 		const randomWallet = privateKeyToAccount(generatePrivateKey());
 
 		const address = randomWallet.address;

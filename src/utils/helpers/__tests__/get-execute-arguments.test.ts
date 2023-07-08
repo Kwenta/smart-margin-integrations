@@ -1,12 +1,6 @@
 import { getExecuteArguments } from '../get-execute-arguments';
 
 describe('getExecuteArguments', () => {
-	const originalProcessArgv = process.argv;
-
-	afterEach(() => {
-		process.argv = originalProcessArgv; // restore original process.argv after each test
-	});
-
 	test('should correctly parse command line arguments', () => {
 		process.argv = ['node', 'script.js', '--arg1', 'value1', '--arg2', 'value2'];
 

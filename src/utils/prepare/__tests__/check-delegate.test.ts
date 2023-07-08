@@ -14,7 +14,7 @@ jest.mock('viem', () => ({
 }));
 
 describe('checkDelegate', () => {
-	it('should return true when the executor is owner', async () => {
+	test('should return true when the executor is owner', async () => {
 		const randomWallet = privateKeyToAccount(generatePrivateKey());
 
 		const repeaterWallet = randomWallet.address;
@@ -55,7 +55,7 @@ describe('checkDelegate', () => {
 		});
 	});
 
-	it('should return true when the executor is a delegate', async () => {
+	test('should return true when the executor is a delegate', async () => {
 		const randomWallet = privateKeyToAccount(generatePrivateKey());
 		const secondRandomWallet = privateKeyToAccount(generatePrivateKey());
 
@@ -100,7 +100,7 @@ describe('checkDelegate', () => {
 		});
 	});
 
-	it('should return false when the executor is neither a delegate nor an owner', async () => {
+	test('should return false when the executor is neither a delegate nor an owner', async () => {
 		const randomWallet = privateKeyToAccount(generatePrivateKey());
 		const secondRandomWallet = privateKeyToAccount(generatePrivateKey());
 

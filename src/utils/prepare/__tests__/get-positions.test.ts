@@ -12,7 +12,7 @@ jest.mock('../../helpers', () => ({
 }));
 
 describe('getPositions', () => {
-	it('should return all positions if there are fewer than 500', async () => {
+	test('should return all positions if there are fewer than 500', async () => {
 		const address = '0xWallet';
 
 		const mockedClients = {

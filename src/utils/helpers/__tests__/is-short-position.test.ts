@@ -27,9 +27,11 @@ describe('isShortPosition', () => {
 	test('should return true for negative position size', () => {
 		const position: PositionDetail = {
 			...MOCK_POSITION,
+			position: {
+				...MOCK_POSITION.position,
+				size: -1n,
+			},
 		};
-
-		position.position.size = -1n;
 
 		const result = isShortPosition(position);
 
@@ -39,9 +41,11 @@ describe('isShortPosition', () => {
 	test('should return false for zero position size', () => {
 		const position: PositionDetail = {
 			...MOCK_POSITION,
+			position: {
+				...MOCK_POSITION.position,
+				size: 0n,
+			},
 		};
-
-		position.position.size = 0n;
 
 		const result = isShortPosition(position);
 
@@ -51,10 +55,11 @@ describe('isShortPosition', () => {
 	test('should return false for positive position size', () => {
 		const position: PositionDetail = {
 			...MOCK_POSITION,
+			position: {
+				...MOCK_POSITION.position,
+				size: 1n,
+			},
 		};
-
-		position.position.size = 1n;
-
 		const result = isShortPosition(position);
 
 		expect(result).toBe(false);

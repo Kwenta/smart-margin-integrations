@@ -22,7 +22,7 @@ jest.mock('../get-idle-margin', () => ({
 }));
 
 describe('getWalletInfo', () => {
-	it('should return wallet info with given address', async () => {
+	test('should return wallet info with given address', async () => {
 		const mockedClients = {
 			publicClient: {
 				readContract: jest.fn().mockResolvedValue(0n),
@@ -67,7 +67,7 @@ describe('getWalletInfo', () => {
 		expect(initClients).toHaveBeenCalledTimes(1);
 	});
 
-	it('should return wallet info with owner balance', async () => {
+	test('should return wallet info with owner balance', async () => {
 		const randomWallet = privateKeyToAccount(generatePrivateKey());
 		const repeaterWallet = randomWallet.address;
 
