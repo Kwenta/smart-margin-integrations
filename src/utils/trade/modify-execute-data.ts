@@ -6,8 +6,7 @@ import {
 	closePositionCommands,
 } from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
-import { getWalletInfo } from '../prepare';
-import { getConditionalOrders } from '../prepare/get-conditional-orders';
+import { getConditionalOrders, getWalletInfo } from '../prepare';
 
 import { type OperationDetails, OperationType } from './parse-operation-details';
 
@@ -62,12 +61,13 @@ async function modifyExecuteData({
 				CommandName.PERPS_V2_SUBMIT_DELAYED_ORDER,
 				CommandName.PERPS_V2_SUBMIT_OFFCHAIN_DELAYED_ORDER,
 			];
-			const { decodedArgs: openDecodedArgs, commandName: openCommandName } = operations.find(
-				({ commandName, decodedArgs }) =>
-					openCommands.includes(commandName) && decodedArgs[0] === operationDetails.market
-			)!;
+			const { decodedArgs: openDecodedArgs, commandName: openCommandName } =
+				operations.find(
+					({ commandName, decodedArgs }) =>
+						openCommands.includes(commandName) && decodedArgs[0] === operationDetails.market
+				) || {};
 
-			if (!openDecodedArgs) {
+			if (!openDecodedArgs || !openCommandName) {
 				throw new Error('Operation not found.');
 			}
 			const modifier = operationDetails.type === OperationType.OPEN_LONG ? 1 : -1;
@@ -116,7 +116,7 @@ async function modifyExecuteData({
 			const modifiedArgs = [...openDecodedArgs];
 			modifiedArgs[1] = modifiedSize;
 
-			if (marketPosition.remainingMargin > 0n) {
+			if (marketPosition?.remainingMargin > 0n) {
 				responseOperations.push({
 					commandName: CommandName.PERPS_V2_WITHDRAW_ALL_MARGIN,
 					decodedArgs: [market],
@@ -328,3 +328,4 @@ async function modifyExecuteData({
 }
 
 export { modifyExecuteData };
+export type { ModifyExecuteDataProps };
