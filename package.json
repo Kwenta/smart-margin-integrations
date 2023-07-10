@@ -11,7 +11,7 @@
 		"node": ">=16.0.0"
 	},
 	"scripts": {
-		"test": "jest",
+		"test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
 		"copytrading": "ts-node src/copytrading.ts",
 		"lint": "eslint --ext .ts .",
 		"lint:fix": "eslint --ext .ts . --fix",
@@ -19,6 +19,7 @@
 		"tsc": "tsc"
 	},
 	"dependencies": {
+		"mathjs": "^11.8.2",
 		"viem": "^1.0.7"
 	},
 	"devDependencies": {

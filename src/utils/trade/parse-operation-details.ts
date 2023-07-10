@@ -1,5 +1,5 @@
 import type { Address } from 'viem';
-import { isAddress } from 'viem';
+import { formatEther, isAddress } from 'viem';
 
 import {
 	CommandName,
@@ -10,7 +10,6 @@ import {
 	isOpenPositionCommand,
 	marketCommandNames,
 } from '../../constants/commands';
-import { bigintToNumber } from '../helpers/';
 import { isShortPosition } from '../helpers/is-short-position';
 import type { PositionDetail } from '../prepare';
 import type { OrdersResponse } from '../prepare/get-conditional-orders';
@@ -59,6 +58,7 @@ async function parseOperationDetails(
 	balance: bigint,
 	repeaterBalance: bigint
 ): Promise<OperationDetails> {
+	const { evaluate, format } = await import('mathjs');
 	const conditionalParams: ConditionalParams = {};
 	const allArgs = operations
 		.filter(
@@ -94,7 +94,11 @@ async function parseOperationDetails(
 
 		// Modify existing position
 		if (marketPosition) {
-			proportion = bigintToNumber(amount) / bigintToNumber(marketPosition.position.size);
+			proportion = Number.parseFloat(
+				format(evaluate(`${formatEther(amount)} / ${formatEther(marketPosition.position.size)}`), {
+					precision: 14,
+				})
+			);
 			// Close position
 			if (isClosePositionCommand(firstCommandName)) {
 				proportion = 1;
@@ -114,13 +118,24 @@ async function parseOperationDetails(
 			}
 			// Open new position
 		} else if (isOpenPositionCommand(firstCommandName)) {
-			proportion = bigintToNumber(repeaterBalance) / bigintToNumber(balance);
+			proportion = Number.parseFloat(
+				format(evaluate(`${formatEther(repeaterBalance)} / ${formatEther(balance)}`), {
+					precision: 14,
+				})
+			);
 			type = amount < 0n ? OperationType.OPEN_SHORT : OperationType.OPEN_LONG;
 		}
 		// Modify margin
 	} else if (modifyMargin) {
 		type = marginAmount < 0n ? OperationType.DECREASE_MARGIN : OperationType.INCREASE_MARGIN;
-		proportion = bigintToNumber(marginAmount) / bigintToNumber(marketPosition!.position.margin);
+		proportion = Number.parseFloat(
+			format(
+				evaluate(`${formatEther(marginAmount)} / ${formatEther(marketPosition!.position.margin)}`),
+				{
+					precision: 14,
+				}
+			)
+		);
 		// Setup conditional order (without market operation)
 	} else if (
 		operations.some((operation) => conditionalOrderCommands.includes(operation.commandName))
