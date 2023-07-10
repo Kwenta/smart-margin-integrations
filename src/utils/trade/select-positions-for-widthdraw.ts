@@ -3,7 +3,12 @@ import { getIdleMargin } from '../prepare';
 import type { IdlePosition } from '../prepare/get-idle-margin';
 
 function selectPositionsForWidthdraw(positions: PositionDetail[], amount: bigint): IdlePosition[] {
-	const { positions: idlePositions } = getIdleMargin(positions);
+	const { positions: idlePositions, idleInMarkets } = getIdleMargin(positions);
+
+	if (idleInMarkets < amount) {
+		throw new Error('Not enough idle margin');
+	}
+
 	const sortedPositions = idlePositions.sort((a, b) => (b.idleMargin > a.idleMargin ? 1 : -1));
 
 	const selectedPositions: IdlePosition[] = [];
