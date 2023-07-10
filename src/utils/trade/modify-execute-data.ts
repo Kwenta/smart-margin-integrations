@@ -6,8 +6,7 @@ import {
 	closePositionCommands,
 } from '../../constants/commands';
 import { bigintToNumber } from '../helpers/';
-import { getWalletInfo } from '../prepare';
-import { getConditionalOrders } from '../prepare/get-conditional-orders';
+import { getConditionalOrders, getWalletInfo } from '../prepare';
 
 import { type OperationDetails, OperationType } from './parse-operation-details';
 
@@ -117,7 +116,7 @@ async function modifyExecuteData({
 			const modifiedArgs = [...openDecodedArgs];
 			modifiedArgs[1] = modifiedSize;
 
-			if (marketPosition.remainingMargin > 0n) {
+			if (marketPosition?.remainingMargin > 0n) {
 				responseOperations.push({
 					commandName: CommandName.PERPS_V2_WITHDRAW_ALL_MARGIN,
 					decodedArgs: [market],
