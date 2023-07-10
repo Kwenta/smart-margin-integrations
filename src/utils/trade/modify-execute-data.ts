@@ -62,12 +62,13 @@ async function modifyExecuteData({
 				CommandName.PERPS_V2_SUBMIT_DELAYED_ORDER,
 				CommandName.PERPS_V2_SUBMIT_OFFCHAIN_DELAYED_ORDER,
 			];
-			const { decodedArgs: openDecodedArgs, commandName: openCommandName } = operations.find(
-				({ commandName, decodedArgs }) =>
-					openCommands.includes(commandName) && decodedArgs[0] === operationDetails.market
-			)!;
+			const { decodedArgs: openDecodedArgs, commandName: openCommandName } =
+				operations.find(
+					({ commandName, decodedArgs }) =>
+						openCommands.includes(commandName) && decodedArgs[0] === operationDetails.market
+				) || {};
 
-			if (!openDecodedArgs) {
+			if (!openDecodedArgs || !openCommandName) {
 				throw new Error('Operation not found.');
 			}
 			const modifier = operationDetails.type === OperationType.OPEN_LONG ? 1 : -1;
@@ -328,3 +329,4 @@ async function modifyExecuteData({
 }
 
 export { modifyExecuteData };
+export type { ModifyExecuteDataProps };
