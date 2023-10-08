@@ -7,5 +7,5 @@ export const PERPS_V2_MARKET_DATA: Record<string, Address> = {
 
 export const sUSD_SYNTH_ADDRESS: Record<string, Address> = {
 	420: '0xebaeaad9236615542844adc5c149f86c36ad1136',
-	10: '0x57ab1ec28d129707052df4df418d58a2d46d5f51',
+	10: '0x8c6f28f2f1a3c87f0f938b96d27520d9751ec8d9',
 };
